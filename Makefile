@@ -203,22 +203,22 @@ local-dev-build:
 local-dev-up:
 	make local-dev-clean
 	make local-dev-build-frontend
-	docker-compose up -d redis
-	docker-compose up -d quay-db
+	docker-compose up -d redis  --build
+	docker-compose up -d quay-db  --build
 	docker exec -it quay-db bash -c 'while ! pg_isready; do echo "waiting for postgres"; sleep 2; done'
-	docker-compose up -d quay
+	docker-compose up -d quay --build
 
 .PHONY: local-dev-up-with-clair
 local-dev-up-with-clair:
 	make local-dev-clean
 	make local-dev-build-frontend
-	docker-compose up -d redis
-	docker-compose up -d quay-db
+	docker-compose up -d redis  --build
+	docker-compose up -d quay-db  --build
 	docker exec -it quay-db bash -c 'while ! pg_isready; do echo "waiting for postgres"; sleep 2; done'
-	docker-compose up -d quay
-	docker-compose up -d clair-db
+	docker-compose up -d quay  --build
+	docker-compose up -d clair-db  --build
 	docker exec -it clair-db bash -c 'while ! pg_isready; do echo "waiting for postgres"; sleep 2; done'
-	docker-compose up -d clair
+	docker-compose up -d clair  --build
 
 .PHONY: local-dev-up
 local-dev-down:
