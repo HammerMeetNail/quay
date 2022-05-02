@@ -38,6 +38,11 @@ jobs:
         # related warnings now. We can at least use it for visibility purposes.
         flake8 --exit-zero
 
+    - name: Check Requirements are pinned
+      run: |
+        # Read each line of requirement.txt and flag if any line doesn't contain new ==, @, newline, or #
+        cat requirements.txt| while read i; do if [[ ! $i =~ "==|@|^$|^#" ]] echo $i is not pinned && exit 1; done
+
   unit:
     name: Unit Test
     runs-on: ubuntu-latest
