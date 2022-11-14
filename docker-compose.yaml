@@ -96,7 +96,7 @@ services:
   clair:
     user: nobody
     container_name: quay-clair
-    image: quay.io/projectquay/clair:4.4.0
+    image: quay.io/projectquay/clair:4.4.4
     volumes:
       - "./local-dev/clair:/src/clair/"
     environment:

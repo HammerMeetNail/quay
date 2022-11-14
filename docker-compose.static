@@ -53,12 +53,9 @@ services:
   quay:
     user: ${DOCKER_USER:-nobody:0}
     container_name: quay-quay
-    build:
-      context: .
-      target: final
-    image: localhost/quay-local:latest
+    image: registry.redhat.io/quay/quay-rhel8:v3.7.10-7
     volumes:
-      - "./conf:/quay-registry/conf"
+      - ".:/quay-registry"
       - "./local-dev/stack:/quay-registry/conf/stack"
     ports:
       - "8080:8080" 
@@ -78,7 +75,7 @@ services:
   clair:
     user: nobody
     container_name: quay-clair
-    image: quay.io/projectquay/clair:4.4.0
+    image: quay.io/projectquay/clair:4.4.4
     volumes:
       - "./local-dev/clair:/src/clair/"
     environment:
