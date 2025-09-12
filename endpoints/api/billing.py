@@ -1,7 +1,6 @@
 """
 Billing information, subscriptions, and plan information.
 """
-
 import datetime
 import json
 import time

@@ -93,12 +93,9 @@ class TestGlobalReadOnlySuperUserRepositoryPermissions:
         ]
 
         for user_obj, is_global_readonly, is_superuser, expected_read in test_cases:
-            with (
-                patch(
-                    "app.usermanager.is_global_readonly_superuser", return_value=is_global_readonly
-                ),
-                patch("app.usermanager.is_superuser", return_value=is_superuser),
-            ):
+            with patch(
+                "app.usermanager.is_global_readonly_superuser", return_value=is_global_readonly
+            ), patch("app.usermanager.is_superuser", return_value=is_superuser):
 
                 perm_user = QuayDeferredPermissionUser.for_user(user_obj, {scopes.DIRECT_LOGIN})
 
@@ -109,9 +106,8 @@ class TestGlobalReadOnlySuperUserRepositoryPermissions:
 
     def test_write_permission_blocking(self, global_readonly_superuser):
         """Test that write permissions are blocked for global read-only superusers."""
-        with (
-            patch("app.usermanager.is_global_readonly_superuser", return_value=True),
-            patch("app.usermanager.is_superuser", return_value=False),
+        with patch("app.usermanager.is_global_readonly_superuser", return_value=True), patch(
+            "app.usermanager.is_superuser", return_value=False
         ):
 
             perm_user = QuayDeferredPermissionUser.for_user(
@@ -142,12 +138,9 @@ class TestGlobalReadOnlySuperUserRepositoryPermissions:
         ]
 
         for scope_set, is_global_readonly, is_superuser, expected_su_perm in test_cases:
-            with (
-                patch(
-                    "app.usermanager.is_global_readonly_superuser", return_value=is_global_readonly
-                ),
-                patch("app.usermanager.is_superuser", return_value=is_superuser),
-            ):
+            with patch(
+                "app.usermanager.is_global_readonly_superuser", return_value=is_global_readonly
+            ), patch("app.usermanager.is_superuser", return_value=is_superuser):
 
                 perm_user = QuayDeferredPermissionUser.for_user(
                     global_readonly_superuser, scope_set
@@ -199,9 +192,8 @@ class TestPermissionPopulation:
 
     def test_superuser_provides_population(self, global_readonly_superuser):
         """Test that _populate_superuser_provides works correctly."""
-        with (
-            patch("app.usermanager.is_global_readonly_superuser", return_value=True),
-            patch("app.usermanager.is_superuser", return_value=False),
+        with patch("app.usermanager.is_global_readonly_superuser", return_value=True), patch(
+            "app.usermanager.is_superuser", return_value=False
         ):
 
             perm_user = QuayDeferredPermissionUser.for_user(
@@ -220,9 +212,8 @@ class TestPermissionPopulation:
     def test_mixed_superuser_scenarios(self, regular_superuser):
         """Test scenarios with both superuser and global readonly flags."""
         # Test a user who is both superuser and global readonly
-        with (
-            patch("app.usermanager.is_global_readonly_superuser", return_value=True),
-            patch("app.usermanager.is_superuser", return_value=True),
+        with patch("app.usermanager.is_global_readonly_superuser", return_value=True), patch(
+            "app.usermanager.is_superuser", return_value=True
         ):
 
             perm_user = QuayDeferredPermissionUser.for_user(
@@ -258,8 +249,9 @@ class TestPermissionDecoratorsIntegration:
             assert True
         except TypeError as e:
             if "allow_for_global_readonly_superuser" in str(e):
-                msg = "Decorator does not support allow_for_global_readonly_superuser parameter"
-                assert False, msg
+                assert (
+                    False
+                ), "Decorator does not support allow_for_global_readonly_superuser parameter"
             else:
                 raise
 
@@ -277,9 +269,8 @@ def test_permission_classes_for_global_readonly(
     permission_class, should_block, global_readonly_superuser
 ):
     """Parametrized test for different permission classes."""
-    with (
-        patch("app.usermanager.is_global_readonly_superuser", return_value=True),
-        patch("app.usermanager.is_superuser", return_value=False),
+    with patch("app.usermanager.is_global_readonly_superuser", return_value=True), patch(
+        "app.usermanager.is_superuser", return_value=False
     ):
 
         perm_user = QuayDeferredPermissionUser.for_user(

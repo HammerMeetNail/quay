@@ -1,11 +1,10 @@
 """
 Manage user and organization robot accounts.
 """
-
 import json
 import logging
 
-from flask import request
+from flask import abort, request
 
 from auth import scopes
 from auth.auth_context import get_authenticated_user
@@ -41,7 +40,7 @@ from endpoints.api import (
     validate_json_request,
 )
 from endpoints.api.robot_models_pre_oci import pre_oci_model as model
-from endpoints.exception import Forbidden, Unauthorized
+from endpoints.exception import Unauthorized
 from util.names import format_robot_username
 from util.parsing import truthy_bool
 
@@ -159,7 +158,7 @@ class UserRobot(ApiResource):
         from endpoints.api import allow_if_global_readonly_superuser
 
         if allow_if_global_readonly_superuser():
-            raise Forbidden("Global readonly users cannot create robot accounts")
+            abort(403, "Global readonly users cannot create robot accounts")
 
         parent = get_authenticated_user()
         create_data = request.get_json(silent=True) or {}
@@ -372,7 +371,7 @@ class OrgRobotPermissions(ApiResource):
 
             return {"permissions": [permission.to_dict() for permission in permissions]}
 
-        raise Unauthorized()
+        abort(403)
 
 
 @resource("/v1/user/robots/<robot_shortname>/regenerate")

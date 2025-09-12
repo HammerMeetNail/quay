@@ -1,7 +1,6 @@
 """
 Manage the tags of a repository.
 """
-
 from datetime import datetime
 
 from flask import abort, request

@@ -1,7 +1,6 @@
 """
 Error details API.
 """
-
 from flask import url_for
 
 from endpoints.api import (

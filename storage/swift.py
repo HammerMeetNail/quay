@@ -3,7 +3,6 @@ Swift storage driver.
 
 Uses: http://docs.openstack.org/developer/swift/overview_large_objects.html
 """
-
 import copy
 import hmac
 import json

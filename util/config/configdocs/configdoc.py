@@ -2,6 +2,7 @@
 Generates html documentation from JSON Schema.
 """
 
+
 import json
 from collections import OrderedDict
 
