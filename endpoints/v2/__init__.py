@@ -227,9 +227,12 @@ def _require_repo_permission(permission_class, scopes=None, allow_public=False):
 
                 # Superusers' extra permissions
                 if features.SUPERUSERS_FULL_ACCESS and allow_for_superuser:
-                    from endpoints.api import allow_if_superuser
-
-                    if allow_if_superuser():
+                    context = get_authenticated_context()
+                    if (
+                        context is not None
+                        and context.authed_user is not None
+                        and usermanager.is_superuser(context.authed_user.username)
+                    ):
                         return func(namespace_name, repo_name, *args, **kwargs)
 
                 # Global readonly superusers' extra permissions
