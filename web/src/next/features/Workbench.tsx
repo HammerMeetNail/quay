@@ -96,17 +96,21 @@ export const Workbench: React.FC<{scope: string; onScopeInfo?: () => void}> = ({
     runtime.mode === 'demo' ||
     runtime.repositories.includes(`${row.namespace}/${row.name}`);
   const [overviewDismissed, setOverviewDismissed] = useState(false);
-  // The initial desktop demo overview is passive: no history entry or focus move.
-  // Live mode still requires an explicit, allowlisted repository selection.
+  // Passive desktop overview: no history entry or focus move. Live selection
+  // comes only from the first explicitly approved path, never from list order.
+  // It may be absent from this response page, but must belong to this scope.
+  const initialOverview =
+    runtime.mode === 'demo'
+      ? rows[0]?.name
+      : selectedRepository(runtime.repositories[0] ?? null, scope);
   const overview =
     !overviewDismissed &&
-    runtime.mode === 'demo' &&
     inline &&
     !params.has('preview') &&
     !cursor &&
     !filter &&
     visibility === 'all'
-      ? rows[0]?.name
+      ? initialOverview
       : undefined;
   const shownPreview = preview ?? overview;
   const blockedCount = all.filter((row) => !allowed(row)).length;

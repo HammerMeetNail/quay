@@ -164,31 +164,72 @@ test('desktop demo overview is passive and all loaded rows remain reachable in t
   await expect(page.getByRole('heading', {name: 'Repositories', exact: true})).toBeFocused();
 });
 
-test('live overview rail does not fetch repository details until an approved selection', async ({page}) => {
-  await page.setViewportSize({width: 1536, height: 1024});
-  await page.route('**/__quay_next_preview__/runtime.json', route => route.fulfill({status: 200, json: {
-    mode: 'live', namespaces: ['acme'], repositories: ['acme/payments'],
-    initialNamespace: 'acme', registryHost: 'quay.io',
-  }}));
-  const details = [], scans = [];
-  page.on('request', request => {
-    const url = request.url();
-    if (url.includes('/api/v1/repository/acme/')) details.push(url);
-    if (url.includes('/security?')) scans.push(url);
+for (const approved of ['payments', 'service-40']) {
+  test(`initial live overview passively loads only first approved repository ${approved}`, async ({page}) => {
+    await page.setViewportSize({width: 1536, height: 960});
+    await page.route('**/__quay_next_preview__/runtime.json', route => route.fulfill({status: 200, json: {
+      mode: 'live', namespaces: ['acme'], repositories: [`acme/${approved}`, 'acme/worker'],
+      initialNamespace: 'acme', registryHost: 'quay.io',
+    }}));
+    const requests = [];
+    page.on('request', request => {
+      if (request.url().includes('/api/v1/repository/')) requests.push(request);
+    });
+    // Observe focus/history from document creation, including transient mutations.
+    await page.addInitScript(() => {
+      window.previewFocus = [];
+      window.previewHistory = [];
+      document.addEventListener('focusin', event => window.previewFocus.push(event.target.id));
+      for (const method of ['pushState', 'replaceState']) {
+        const original = history[method].bind(history);
+        history[method] = (...args) => {
+          if (args[2] != null) window.previewHistory.push(String(args[2]));
+          return original(...args);
+        };
+      }
+    });
+    await page.goto(`${base}?namespace=acme`);
+    const overview = page.getByRole('complementary', {name: approved, exact: true});
+    await expect(overview).toBeVisible();
+    await expect(overview.getByRole('heading', {name: 'Your access', exact: true})).toBeVisible();
+    await expect(overview.getByRole('link', {name: 'v2.8.1', exact: true})).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`${base}\\?namespace=acme$`));
+    expect(await page.evaluate(() => window.previewFocus)).toEqual([]);
+    expect(await page.evaluate(() => window.previewHistory)).toEqual([]);
+    expect(requests.map(request => {
+      const url = new URL(request.url());
+      return [request.method(), decodeURIComponent(url.pathname), url.search];
+    }).sort()).toEqual([
+      ['GET', `/api/v1/repository/acme/${approved}`, '?includeTags=false'],
+      ['GET', `/api/v1/repository/acme/${approved}/tag/`, '?page=1&limit=25&onlyActiveTags=true'],
+    ].sort());
+    // Resizing hides the passive panel without turning it into a detail page.
+    await page.setViewportSize({width: 390, height: 844});
+    await expect(page.getByTestId('repository-preview')).toHaveCount(0);
+    await expect(page.getByRole('list', {name: 'Repositories', exact: true})).toBeVisible();
+    expect(requests).toHaveLength(2);
   });
-  await page.goto(base);
-  const rail = page.getByRole('complementary', {name: 'Select an approved repository', exact: true});
-  await expect(rail).toBeVisible();
-  await expect(page.getByRole('table', {name: 'Repositories', exact: true})).toBeVisible();
-  expect(details).toHaveLength(0);
-  expect(scans).toHaveLength(0);
-  await rail.getByRole('button', {name: 'Open overview for payments'}).click();
-  await expect(page).toHaveURL(/preview=acme%2Fpayments/);
-  await expect(rail).toHaveCount(0);
-  await expect(page.getByRole('complementary', {name: 'payments', exact: true})).toBeVisible();
-  await expect.poll(() => details.length).toBe(2); // Repository details and first tag page only.
-  expect(scans).toHaveLength(0);
-});
+}
+
+for (const scenario of ['narrow', 'different namespace']) {
+  test(`live first approved overview remains list-first for ${scenario}`, async ({page}) => {
+    await page.setViewportSize({width: scenario === 'narrow' ? 390 : 1536, height: 960});
+    await page.route('**/__quay_next_preview__/runtime.json', route => route.fulfill({status: 200, json: {
+      mode: 'live', namespaces: ['acme', 'other'],
+      repositories: [scenario === 'narrow' ? 'acme/payments' : 'other/payments', 'acme/worker'],
+      initialNamespace: 'acme', registryHost: 'quay.io',
+    }}));
+    const details = [];
+    page.on('request', request => {
+      if (request.url().includes('/api/v1/repository/')) details.push(request.url());
+    });
+    await page.goto(`${base}?namespace=acme`);
+    const collection = page.getByRole(scenario === 'narrow' ? 'list' : 'table', {name: 'Repositories', exact: true});
+    await expect(collection.getByText('payments', {exact: true})).toBeVisible();
+    await expect(page.getByTestId('repository-preview')).toHaveCount(0);
+    expect(details).toEqual([]);
+  });
+}
 
 test('Find has one visible action and its keyboard shortcut focuses the repository filter', async ({page}) => {
   await page.goto(repo);

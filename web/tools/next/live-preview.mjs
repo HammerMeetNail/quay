@@ -10,9 +10,10 @@ const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const repositories = parseRepositories(process.env.QUAY_NEXT_REPOSITORIES);
 const namespaces = [...new Set(repositories.map(x => x.split('/')[0]))];
 let build = await loadBuild(path.join(WEB, 'dist-next'));
-const browser = await chromium.launch({ headless: false });
+const browser = await chromium.launch({ headless: false, args: ['--window-size=1536,960'] });
 // Never use a persistent profile, cookie export, ignoreHTTPSErrors or unsafe browser flags.
-const context = await browser.newContext({ serviceWorkers: 'block', acceptDownloads: false });
+// Use the native window viewport so user resizing still drives responsive layout.
+const context = await browser.newContext({ viewport: null, serviceWorkers: 'block', acceptDownloads: false });
 const terminal = createInterface({ input: stdin, output: stdout });
 let phase = 'preview';
 let closing = false;

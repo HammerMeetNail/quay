@@ -13,11 +13,11 @@
 After reviewing the running V2 implementation, the owner supplied the original 1536 × 1024 planning image and asked for closer visual fidelity. This correction supersedes the narrower composition choices below where they conflict:
 
 - The desktop workbench uses the reference's three-part silhouette: a roughly 220-pixel sidebar, a compact repository table, and a roughly 456-pixel right overview rail. The table shows a separate description column and keeps all rows from the current response page in a keyboard-reachable scroll region; the viewport shows about eight at a time. Counts still describe the loaded response, never a fabricated namespace total.
-- In demo mode, the first returned repository appears in the overview on initial desktop load without changing the URL, moving focus, or creating history. In live mode, a static selection rail keeps the same layout but loads no repository or tag details until the user explicitly chooses an allowlisted repository.
+- In demo mode, the first returned repository appears in the overview on initial desktop load without changing the URL, moving focus, or creating history. In live mode, the first exact repository supplied in `QUAY_NEXT_REPOSITORIES` appears in the overview on initial desktop load when it belongs to the current namespace, with the same passive URL/focus behavior. Only that allowlisted repository detail and its first tag page load; a narrow window stays list-first.
 - A non-sticky workbench footer echoes the reference's four-part rhythm with accurate task guidance. It does not appear on artifact pages and makes no claims about unimplemented search, health, storage, or team features.
 - The header's wide Find action opens the actual loaded-page repository filter; `⌘K`/`Ctrl+K` uses the same action. Only one Find control is visible per breakpoint.
 
-The data and security decisions below still apply: no repository-wide health, size, platform or scanner verdict; no invented popularity or tag totals; no default `:latest` pull command; no write/admin buttons; and no automatic live detail or scan fan-out. [The rendered-alignment evidence](evidence/VISUAL-ALIGNMENT.md) records what was tested after this correction.
+The data and security decisions below still apply: no repository-wide health, size, platform or scanner verdict; no invented popularity or tag totals; no default `:latest` pull command; no write/admin buttons; and no broader live detail or scan fan-out. [The rendered-alignment evidence](evidence/VISUAL-ALIGNMENT.md) and [live first-open follow-up](evidence/LIVE-FIRST-OPEN.md) record the separate checks.
 
 ## 1. Preserve what already landed
 
