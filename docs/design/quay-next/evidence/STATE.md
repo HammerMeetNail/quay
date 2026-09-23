@@ -36,4 +36,8 @@ The QN task history above remains in progress. QN-07–QN-12 are not completed b
 
 ## Rendered-reference alignment
 
-After the owner compared the running UI with the planning image, `abb272c49830241ef5b60d2b31f649f7c533eee8` aligned the first desktop viewport around a compact repository list, right overview and task footer. The demo overview is passive; the live overview requires an explicit allowlisted selection. Exact geometry, light/dark and mobile captures, locked-dependency tests, and the public read-only launch are recorded in [VISUAL-ALIGNMENT.md](VISUAL-ALIGNMENT.md). This is a presentation correction within QN-02–QN-05; it does not close the outstanding QN gates above.
+After the owner compared the running UI with the planning image, `abb272c49830241ef5b60d2b31f649f7c533eee8` aligned the first desktop viewport around a compact repository list, right overview and task footer. At that checkpoint, the demo overview was passive and the live overview required an explicit allowlisted selection. Exact geometry, light/dark and mobile captures, locked-dependency tests, and the public read-only launch are recorded in [VISUAL-ALIGNMENT.md](VISUAL-ALIGNMENT.md). This is a presentation correction within QN-02–QN-05; it does not close the outstanding QN gates above.
+
+## Live first-open correction
+
+`ee93eb68260e7ec6682bc23205c5d6e75d96716a` changed the launcher to open a desktop-sized native window and show the first exact allowlisted repository in the initial live overview. The display is passive with respect to URL, history and focus, and its automatic reads are limited to that repository's detail and first tag page. [LIVE-FIRST-OPEN.md](LIVE-FIRST-OPEN.md) records the full browser gate and actual public quay.io observation. The prior visual-alignment record describes the earlier explicit-selection state; this follow-up supersedes that behavior. The QN release gates remain open.

@@ -9,7 +9,7 @@
 
 ## Start here
 
-**Presentation update:** Read [VISUAL-REVISION-2.md](VISUAL-REVISION-2.md) and [MOBILE-V2.md](MOBILE-V2.md) for the desktop/mobile direction and its rendered-reference correction. [Visual alignment evidence](evidence/VISUAL-ALIGNMENT.md) records the reviewed first viewport and checks. This update preserves the first-slice implementation and evidence below; it does not reset completed work or close remaining gates. Revision 2 supersedes conflicting visual examples, not the security/authentication contract.
+**Presentation update:** Read [VISUAL-REVISION-2.md](VISUAL-REVISION-2.md) and [MOBILE-V2.md](MOBILE-V2.md) for the desktop/mobile direction and its rendered-reference correction. [Visual alignment evidence](evidence/VISUAL-ALIGNMENT.md) records the reviewed first viewport and checks; [live first-open evidence](evidence/LIVE-FIRST-OPEN.md) records the scoped quay.io overview on launch. This update preserves the first-slice implementation and evidence below; it does not reset completed work or close remaining gates. Revision 2 supersedes conflicting visual examples, not the security/authentication contract.
 
 This revision retains the original architecture and implementation task graph while making the visual design and interactions substantially more specific. The first read-only implementation slice landed in `5874f61948fc65d174bfdc7ffece632ee54a546c`; continue the remaining work from the [task state](evidence/STATE.md) and [implementation evidence](evidence/IMPLEMENTATION-STARTER.md), rather than producing a replacement plan.
 

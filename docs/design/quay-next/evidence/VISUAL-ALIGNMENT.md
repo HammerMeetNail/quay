@@ -2,6 +2,8 @@
 
 Integrated September 23, 2026 on `docs/quay-ui-next-2026-09-22` in `HammerMeetNail/quay`. Source commit: `abb272c49830241ef5b60d2b31f649f7c533eee8`. This follows, and does not replace, the [V2 integration evidence](VISUAL-REVISION-2.md) or the [first-slice evidence](IMPLEMENTATION-STARTER.md).
 
+The later [live first-open correction](LIVE-FIRST-OPEN.md) changes the initial live overview behavior described at this checkpoint.
+
 The owner compared the running demo with the original 1536 × 1024 planning image and found that the first viewport lacked its compact list, right overview and footer. The earlier actual dark workbench capture was 2,674 pixels tall and had no default overview. The revised desktop capture has a 220-pixel sidebar, a 456-pixel overview rail, eight visible table rows, and a footer beginning at y=914 in a 1,024-pixel viewport. All rows returned on the current API response remain in a keyboard-reachable scroll region. The demo's first repository overview is passive: it creates no URL/history entry and moves no focus. Live mode retains the rail's silhouette but requires an explicit allowlisted selection before detail or tag requests.
 
 The visual correction uses the real repository list fields for name, description, visibility, state and update time, and the real selected repository detail/tag fields for the overview. It does not copy the planning image's invented repository health, aggregate size, star totals, platform icons, storage usage, or default `:latest` command. The footer contains accurate task guidance only on the workbench. The header Find action leads to the loaded-page filter; its keyboard shortcut is functional. The earlier live policy, native sign-in and artifact/clipboard behavior were not changed.
