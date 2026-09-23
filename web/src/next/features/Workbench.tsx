@@ -9,10 +9,6 @@ import {
 import {
   Alert,
   Button,
-  Drawer,
-  DrawerContent,
-  DrawerContentBody,
-  DrawerPanelContent,
   FormGroup,
   FormSelect,
   FormSelectOption,
@@ -99,12 +95,27 @@ export const Workbench: React.FC<{scope: string; onScopeInfo?: () => void}> = ({
   const allowed = (row: WorkbenchRepository): boolean =>
     runtime.mode === 'demo' ||
     runtime.repositories.includes(`${row.namespace}/${row.name}`);
+  const [overviewDismissed, setOverviewDismissed] = useState(false);
+  // The initial desktop demo overview is passive: no history entry or focus move.
+  // Live mode still requires an explicit, allowlisted repository selection.
+  const overview =
+    !overviewDismissed &&
+    runtime.mode === 'demo' &&
+    inline &&
+    !params.has('preview') &&
+    !cursor &&
+    !filter &&
+    visibility === 'all'
+      ? rows[0]?.name
+      : undefined;
+  const shownPreview = preview ?? overview;
   const blockedCount = all.filter((row) => !allowed(row)).length;
 
   const update = (
     change: (next: URLSearchParams) => void,
     replace = true,
   ): void => {
+    setOverviewDismissed(true);
     const next = new URLSearchParams(params);
     change(next);
     next.delete('preview');
@@ -115,6 +126,7 @@ export const Workbench: React.FC<{scope: string; onScopeInfo?: () => void}> = ({
     nextCursor: string | null,
     ancestry: (string | null)[],
   ): void => {
+    setOverviewDismissed(true);
     setErrorLocation(null);
     returnTo.current = null;
     const next = new URLSearchParams(params);
@@ -128,6 +140,7 @@ export const Workbench: React.FC<{scope: string; onScopeInfo?: () => void}> = ({
     });
   };
   const inspect = (row: WorkbenchRepository): void => {
+    setOverviewDismissed(true);
     if (!allowed(row)) {
       onScopeInfo?.();
       return;
@@ -142,6 +155,7 @@ export const Workbench: React.FC<{scope: string; onScopeInfo?: () => void}> = ({
     setParams(next, {replace: !!preview, state: location.state});
   };
   const close = (): void => {
+    setOverviewDismissed(true);
     if (returnTo.current) navigate(-1);
     else {
       returnTo.current = {id: 'repositories-heading', scroll: window.scrollY};
@@ -359,7 +373,7 @@ export const Workbench: React.FC<{scope: string; onScopeInfo?: () => void}> = ({
             {rows.map((row) => (
               <li
                 key={`${row.namespace}/${row.name}`}
-                className={row.name === preview ? 'qn-inspected' : ''}
+                className={row.name === shownPreview ? 'qn-inspected' : ''}
               >
                 {identity(row)}
                 <div className="qn-record-footer">
@@ -372,36 +386,50 @@ export const Workbench: React.FC<{scope: string; onScopeInfo?: () => void}> = ({
             ))}
           </ul>
         ) : (
-          <Table
-            className="qn-table qn-repository-table"
-            role="table"
-            aria-label="Repositories"
-            variant="compact"
+          <div
+            className="qn-repository-scroll"
+            role="region"
+            aria-label="Repository rows"
+            tabIndex={0}
           >
-            <Thead>
-              <Tr>
-                <Th>Repository</Th>
-                <Th>Updated</Th>
-                <Th>
-                  <span className="qn-sr-only">Preview</span>
-                </Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {rows.map((row) => (
-                <Tr
-                  key={`${row.namespace}/${row.name}`}
-                  className={row.name === preview ? 'qn-inspected' : ''}
-                >
-                  <Td dataLabel="Repository">{identity(row)}</Td>
-                  <Td dataLabel="Updated">
-                    <UpdatedAt value={row.modified} />
-                  </Td>
-                  <Td>{previewButton(row)}</Td>
+            <Table
+              className="qn-table qn-repository-table"
+              role="table"
+              aria-label="Repositories"
+              variant="compact"
+            >
+              <Thead>
+                <Tr>
+                  <Th>Repository</Th>
+                  <Th>Description</Th>
+                  <Th>Updated</Th>
+                  <Th>
+                    <span className="qn-sr-only">Preview</span>
+                  </Th>
                 </Tr>
-              ))}
-            </Tbody>
-          </Table>
+              </Thead>
+              <Tbody>
+                {rows.map((row) => (
+                  <Tr
+                    key={`${row.namespace}/${row.name}`}
+                    className={row.name === shownPreview ? 'qn-inspected' : ''}
+                  >
+                    <Td dataLabel="Repository">{identity(row)}</Td>
+                    <Td dataLabel="Description">
+                      <p className="qn-description qn-clamp-two">
+                        {descriptionText(row.description) ||
+                          'No description provided.'}
+                      </p>
+                    </Td>
+                    <Td dataLabel="Updated">
+                      <UpdatedAt value={row.modified} />
+                    </Td>
+                    <Td>{previewButton(row)}</Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          </div>
         )}
         {cursorError && (
           <p role="alert">
@@ -442,13 +470,44 @@ export const Workbench: React.FC<{scope: string; onScopeInfo?: () => void}> = ({
     </section>
   );
   const panel =
-    allowedPreview && preview ? (
+    (allowedPreview || overview) && shownPreview ? (
       <RepositoryPreview
         ns={scope}
-        repo={preview}
+        repo={shownPreview}
+        autoFocus={!!preview}
         page={!inline}
         close={close}
       />
+    ) : inline && runtime.mode === 'live' && !params.has('preview') ? (
+      <section className="qn-repository-preview qn-inspector">
+        <span className="qn-eyebrow">Repository overview</span>
+        <div className="qn-preview-identity">
+          <RepositoryGlyph />
+          <h2 id="repository-preview-heading">Select an approved repository</h2>
+        </div>
+        <p className="qn-about-text">
+          Preview a repository to see its visibility, your access and its
+          current tags.
+        </p>
+        <section className="qn-overview-card">
+          <h3>Explore repository details</h3>
+          <p className="qn-secondary">
+            Choose a preview arrow in the list. Details load only for the
+            repository you select.
+          </p>
+          {rows.find(allowed) && (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                const first = rows.find(allowed);
+                if (first) inspect(first);
+              }}
+            >
+              Open overview for {rows.find(allowed)?.name}
+            </Button>
+          )}
+        </section>
+      </section>
     ) : null;
   return (
     <div ref={ref} className="qn-workspace-measure">
@@ -465,21 +524,19 @@ export const Workbench: React.FC<{scope: string; onScopeInfo?: () => void}> = ({
       {panel && !inline ? (
         panel
       ) : (
-        <Drawer isExpanded={!!panel} isInline>
-          <DrawerContent
-            panelContent={
-              panel ? (
-                <DrawerPanelContent defaultSize="24rem">
-                  <aside aria-labelledby="repository-preview-heading">
-                    {panel}
-                  </aside>
-                </DrawerPanelContent>
-              ) : undefined
-            }
-          >
-            <DrawerContentBody>{content}</DrawerContentBody>
-          </DrawerContent>
-        </Drawer>
+        <div
+          className={`qn-workbench-layout ${panel ? 'qn-workbench-layout--overview' : ''}`}
+        >
+          {content}
+          {panel && (
+            <aside
+              className="qn-overview-panel"
+              aria-labelledby="repository-preview-heading"
+            >
+              {panel}
+            </aside>
+          )}
+        </div>
       )}
     </div>
   );

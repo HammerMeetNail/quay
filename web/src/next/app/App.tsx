@@ -229,6 +229,14 @@ export const App: React.FC = () => {
           </ul>
         </section>
       )}
+      <section className="qn-sidebar-guide">
+        <CubeIcon aria-hidden="true" />
+        <h2>Explore your images</h2>
+        <p>
+          Browse repositories, inspect tags and choose the exact artifact you
+          need.
+        </p>
+      </section>
       <div className="qn-sidebar-bottom">
         <span className="qn-connection-label">
           {runtime.mode === 'live'
@@ -265,6 +273,15 @@ export const App: React.FC = () => {
           </Link>
         </div>
         <div className="qn-masthead-context">
+          <Button
+            className="qn-header-search"
+            aria-label="Find a repository"
+            variant="plain"
+            onClick={findRepository}
+            icon={<SearchIcon aria-hidden="true" />}
+          >
+            Find a repository in this namespace… <kbd>⌘ K</kbd>
+          </Button>
           <span className="qn-environment" data-testid="environment-label">
             {runtime.mode === 'live'
               ? 'Live quay.io · repository writes blocked'
@@ -272,13 +289,15 @@ export const App: React.FC = () => {
           </span>
         </div>
         <div className="qn-actions">
-          <Button
-            variant="plain"
-            className="qn-jump"
-            aria-label="Find a repository"
-            icon={<SearchIcon aria-hidden="true" />}
-            onClick={findRepository}
-          />
+          {mobile && (
+            <Button
+              variant="plain"
+              className="qn-jump"
+              aria-label="Find a repository"
+              icon={<SearchIcon aria-hidden="true" />}
+              onClick={findRepository}
+            />
+          )}
           <Button
             variant="plain"
             aria-label={`Theme: ${theme}. Change theme`}
@@ -368,6 +387,38 @@ export const App: React.FC = () => {
           )}
         </main>
       </div>
+      {location.pathname === '/' && !blockedAnon && !invalidScope && (
+        <footer className="qn-feature-strip">
+          <div>
+            <SearchIcon aria-hidden="true" />
+            <span>
+              <strong>Find your repository</strong>
+              <small>Filter the loaded namespace page.</small>
+            </span>
+          </div>
+          <div>
+            <CubeIcon aria-hidden="true" />
+            <span>
+              <strong>Choose an exact image</strong>
+              <small>Explore tags and immutable digests.</small>
+            </span>
+          </div>
+          <div>
+            <CubesIcon aria-hidden="true" />
+            <span>
+              <strong>Inspect platforms</strong>
+              <small>See the manifest before you pull.</small>
+            </span>
+          </div>
+          <div>
+            <UserIcon aria-hidden="true" />
+            <span>
+              <strong>Your registry access</strong>
+              <small>Permissions stay with Quay.</small>
+            </span>
+          </div>
+        </footer>
+      )}
       {mobile && (
         <Modal
           className="qn-modal"

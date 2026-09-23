@@ -8,6 +8,17 @@
 
 **Delivery:** a presentation update to the existing read-only implementation, plus mobile behavior and acceptance tests. Not a completed Quay replacement.
 
+## Rendered-reference correction — September 23, 2026
+
+After reviewing the running V2 implementation, the owner supplied the original 1536 × 1024 planning image and asked for closer visual fidelity. This correction supersedes the narrower composition choices below where they conflict:
+
+- The desktop workbench uses the reference's three-part silhouette: a roughly 220-pixel sidebar, a compact repository table, and a roughly 456-pixel right overview rail. The table shows a separate description column and keeps all rows from the current response page in a keyboard-reachable scroll region; the viewport shows about eight at a time. Counts still describe the loaded response, never a fabricated namespace total.
+- In demo mode, the first returned repository appears in the overview on initial desktop load without changing the URL, moving focus, or creating history. In live mode, a static selection rail keeps the same layout but loads no repository or tag details until the user explicitly chooses an allowlisted repository.
+- A non-sticky workbench footer echoes the reference's four-part rhythm with accurate task guidance. It does not appear on artifact pages and makes no claims about unimplemented search, health, storage, or team features.
+- The header's wide Find action opens the actual loaded-page repository filter; `⌘K`/`Ctrl+K` uses the same action. Only one Find control is visible per breakpoint.
+
+The data and security decisions below still apply: no repository-wide health, size, platform or scanner verdict; no invented popularity or tag totals; no default `:latest` pull command; no write/admin buttons; and no automatic live detail or scan fan-out. [The rendered-alignment evidence](evidence/VISUAL-ALIGNMENT.md) records what was tested after this correction.
+
 ## 1. Preserve what already landed
 
 The first implementation is `5874f61948fc65d174bfdc7ffece632ee54a546c`. The `b1d8ae900` documentation checkpoint correctly records public Quay reads and earlier Chromium/WebKit rendering, while leaving private/authentication, writes, full parity, accessibility/performance, Firefox, and production gates open. Do not revert these records to “no implementation exists.” Do not treat their earlier rendered results as evidence for this new presentation either.

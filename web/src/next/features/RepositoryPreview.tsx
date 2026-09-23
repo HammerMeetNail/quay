@@ -22,7 +22,8 @@ export const RepositoryPreview: React.FC<{
   repo: string;
   page: boolean;
   close: () => void;
-}> = ({ns, repo, page, close}) => {
+  autoFocus?: boolean;
+}> = ({ns, repo, page, close, autoFocus = true}) => {
   const {client} = useSession();
   const heading = useRef<HTMLHeadingElement>(null);
   const [aboutOpen, setAboutOpen] = React.useState(false);
@@ -45,8 +46,8 @@ export const RepositoryPreview: React.FC<{
       ),
   });
   useEffect(() => {
-    heading.current?.focus();
-  }, [ns, repo, page]);
+    if (autoFocus) heading.current?.focus();
+  }, [ns, repo, page, autoFocus]);
   const Heading = page ? 'h1' : 'h2';
   const fullRoute = `/repository/${repoPath(ns, repo)}`;
   return (
@@ -98,23 +99,39 @@ export const RepositoryPreview: React.FC<{
         <Failure error={details.error} retry={() => void details.refetch()} />
       ) : (
         <>
-          <div className="qn-inline-metadata">
-            <VisibilityMark value={details.data.visibility} />
-            <StateMark state={details.data.state} />
+          <div className="qn-tabs">
+            <strong>Overview</strong>
+            <Link to={fullRoute}>Tags &amp; artifacts</Link>
+          </div>
+          <div className="qn-overview-facts">
+            <section className="qn-overview-card">
+              <h3>Visibility</h3>
+              <div className="qn-inline-metadata">
+                <VisibilityMark value={details.data.visibility} />
+                <StateMark state={details.data.state} />
+              </div>
+            </section>
+            <section className="qn-overview-card">
+              <h3>Your access</h3>
+              <p>{details.data.access}</p>
+            </section>
           </div>
           <p className="qn-about-text">
             {descriptionText(details.data.description) ||
               'No description provided.'}
           </p>
-          <dl className="qn-key-values">
-            <dt>Your access</dt>
-            <dd>{details.data.access}</dd>
-          </dl>
         </>
       )}
-      <Link to={fullRoute} className="qn-main-link">
-        Browse tags &amp; artifacts <ArrowRightIcon aria-hidden="true" />
-      </Link>
+      <section className="qn-overview-card qn-quick-actions">
+        <h3>Pull an exact image</h3>
+        <p className="qn-secondary">
+          Choose a tag to inspect its platforms and copy an immutable pull
+          command.
+        </p>
+        <Link to={fullRoute} className="qn-main-link">
+          Browse tags &amp; artifacts <ArrowRightIcon aria-hidden="true" />
+        </Link>
+      </section>
       <section className="qn-section" aria-labelledby="preview-tags-heading">
         <div className="qn-section-title">
           <h3 id="preview-tags-heading">Tags</h3>

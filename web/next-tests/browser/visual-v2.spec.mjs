@@ -140,3 +140,63 @@ for (const inspected of [false, true]) {
     }
   });
 }
+
+test('desktop demo overview is passive and all loaded rows remain reachable in the bounded list', async ({page}) => {
+  await page.setViewportSize({width: 1536, height: 1024});
+  const securityRequests = [];
+  page.on('request', request => {
+    if (request.url().includes('/security?')) securityRequests.push(request.url());
+  });
+  await page.goto(base);
+  const overview = page.getByRole('complementary', {name: 'payments', exact: true});
+  await expect(overview).toBeVisible();
+  await expect(overview.getByRole('heading', {name: 'payments', exact: true})).not.toBeFocused();
+  await expect(page).not.toHaveURL(/preview=/);
+  const rows = page.getByRole('region', {name: 'Repository rows', exact: true});
+  await expect(rows.getByRole('row')).toHaveCount(26);
+  expect(await rows.evaluate(node => node.scrollHeight > node.clientHeight)).toBe(true);
+  await rows.getByRole('link', {name: 'service-20', exact: true}).scrollIntoViewIfNeeded();
+  await expect(rows.getByRole('link', {name: 'service-20', exact: true})).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(securityRequests).toHaveLength(0);
+  await page.getByRole('button', {name: 'Close repository preview', exact: true}).click();
+  await expect(overview).toHaveCount(0);
+  await expect(page.getByRole('heading', {name: 'Repositories', exact: true})).toBeFocused();
+});
+
+test('live overview rail does not fetch repository details until an approved selection', async ({page}) => {
+  await page.setViewportSize({width: 1536, height: 1024});
+  await page.route('**/__quay_next_preview__/runtime.json', route => route.fulfill({status: 200, json: {
+    mode: 'live', namespaces: ['acme'], repositories: ['acme/payments'],
+    initialNamespace: 'acme', registryHost: 'quay.io',
+  }}));
+  const details = [], scans = [];
+  page.on('request', request => {
+    const url = request.url();
+    if (url.includes('/api/v1/repository/acme/')) details.push(url);
+    if (url.includes('/security?')) scans.push(url);
+  });
+  await page.goto(base);
+  const rail = page.getByRole('complementary', {name: 'Select an approved repository', exact: true});
+  await expect(rail).toBeVisible();
+  await expect(page.getByRole('table', {name: 'Repositories', exact: true})).toBeVisible();
+  expect(details).toHaveLength(0);
+  expect(scans).toHaveLength(0);
+  await rail.getByRole('button', {name: 'Open overview for payments'}).click();
+  await expect(page).toHaveURL(/preview=acme%2Fpayments/);
+  await expect(rail).toHaveCount(0);
+  await expect(page.getByRole('complementary', {name: 'payments', exact: true})).toBeVisible();
+  await expect.poll(() => details.length).toBe(2); // Repository details and first tag page only.
+  expect(scans).toHaveLength(0);
+});
+
+test('Find has one visible action and its keyboard shortcut focuses the repository filter', async ({page}) => {
+  await page.goto(repo);
+  await expect(page.getByRole('button', {name: 'Find a repository', exact: true})).toHaveCount(1);
+  await expect(page.locator('.qn-feature-strip')).toHaveCount(0);
+  await page.keyboard.press('Control+k');
+  await expect(page.getByRole('searchbox', {name: 'Filter repositories on this page'})).toBeFocused();
+  await expect(page.locator('.qn-feature-strip')).toBeVisible();
+  await page.setViewportSize({width: 390, height: 844});
+  await expect(page.getByRole('button', {name: 'Find a repository', exact: true})).toBeVisible();
+});
