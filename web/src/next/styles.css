@@ -1,0 +1,78 @@
+/* Application-owned geometry; PatternFly owns component styling and theme colors. */
+.qn-app, .qn-bootstrap {
+  --qn-canvas: var(--pf-t--global--background--color--secondary--default, Canvas);
+  --qn-surface: var(--pf-t--global--background--color--primary--default, Canvas);
+  --qn-text: var(--pf-t--global--text--color--regular, CanvasText);
+  --qn-muted: var(--pf-t--global--text--color--subtle, CanvasText);
+  --qn-border: var(--pf-t--global--border--color--default, GrayText);
+  min-block-size: 100dvh; color: var(--qn-text); background: var(--qn-canvas); line-height: 1.5;
+}
+.qn-app h1 {font-size: 1.5rem; line-height: 2rem; font-weight: 600; overflow-wrap: anywhere;}
+.qn-app h2 {font-size: 1.125rem; line-height: 1.5rem; font-weight: 600;}
+.qn-app h3 {font-size: 1rem; font-weight: 600;}
+.qn-app label {font-size: .875rem; font-weight: 600;}
+.qn-app a {overflow-wrap: anywhere;}
+.qn-skip {position: absolute; inset-inline-start: 1rem; inset-block-start: -6rem; z-index: 1000; padding: .75rem; background: var(--qn-surface);}
+.qn-skip:focus {inset-block-start: .5rem;}
+.qn-masthead {display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; min-block-size: 3.5rem; padding: .75rem 1rem; background: var(--qn-surface); border-block-end: 1px solid var(--qn-border);}
+.qn-brand {font-weight: 700; font-size: 1.125rem; letter-spacing: .06em; text-decoration: none; color: var(--qn-text); white-space: nowrap;}
+.qn-brand span {font-weight: 400; letter-spacing: 0;}
+.qn-scope {display: flex; gap: .75rem; align-items: center; min-inline-size: 0;}
+.qn-account {margin-inline-start: auto; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem;}
+.qn-theme {display: flex; gap: .5rem; align-items: center;}
+.qn-body {display: grid; grid-template-columns: 13rem minmax(0, 1fr); min-block-size: calc(100dvh - 5rem);}
+.qn-nav {padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: 1.5rem; border-inline-end: 1px solid var(--qn-border);}
+.qn-nav > a {padding: .5rem .75rem; border-inline-start: 3px solid currentColor; font-weight: 600; text-decoration: none;}
+.qn-main {min-inline-size: 0; padding: 1.5rem;}
+.qn-workspace {min-inline-size: 0; display: grid; gap: 1rem; background: var(--qn-surface); padding: 1.5rem; border: 1px solid var(--qn-border); border-radius: .375rem;}
+.qn-page-title {display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;}
+.qn-eyebrow {color: var(--qn-muted); font-size: .875rem;}
+.qn-toolbar {display: flex; flex-wrap: wrap; gap: .75rem; align-items: flex-end; padding-block-start: .5rem;}
+.qn-search {display: grid; gap: .25rem; flex: 1 1 16rem; max-inline-size: 38rem; min-inline-size: 0;}
+.qn-muted {color: var(--qn-muted); font-size: .875rem; overflow-wrap: anywhere;}
+.qn-description {max-inline-size: 65ch; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .875rem;}
+.qn-identity {display: grid; gap: .25rem; min-inline-size: 0; padding-block: .5rem; overflow-wrap: anywhere;}
+.qn-identity a {font-weight: 600;}
+.qn-identity code {font-size: .8125rem;}
+.qn-inspected {border-inline-start: 3px solid currentColor; padding-inline-start: .5rem;}
+.qn-row {height: 3rem; font-size: .875rem; font-variant-numeric: tabular-nums;}
+.qn-pagination {display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; padding-block-start: 1rem; font-size: .875rem;}
+.qn-pagination > span {margin-inline-end: auto;}
+.qn-status-line {display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; font-size: .875rem;}
+.qn-inspector {display: grid; gap: 1rem; padding: 1rem; min-inline-size: 0; overflow-wrap: anywhere;}
+.qn-inspector section {display: grid; gap: .75rem;}
+.qn-detail-heading {display: flex; flex-wrap: wrap; align-items: center; gap: .75rem;}
+.qn-detail-heading > h2 {flex: 1 1 14rem;}
+.qn-detail-page {padding: 0; max-inline-size: 65rem;}
+.qn-identifier {display: block; min-inline-size: 0; max-inline-size: 100%; white-space: normal; overflow-wrap: anywhere; unicode-bidi: plaintext;}
+.qn-command {display: grid; gap: .75rem; padding: 1rem; border: 1px solid var(--qn-border); border-radius: .375rem;}
+.qn-platforms, .qn-findings, .qn-records {list-style: none; margin: 0; padding: 0;}
+.qn-platforms > li, .qn-findings > li {display: grid; gap: .25rem; padding-block: .75rem; border-block-end: 1px solid var(--qn-border);}
+.qn-stack {display: grid; gap: 1rem;}
+.qn-app dl {display: grid; grid-template-columns: minmax(0, 1fr); gap: .25rem;}
+.qn-app dt {font-weight: 600; overflow-wrap: anywhere;}
+.qn-app dd {margin: 0 0 .75rem; white-space: pre-wrap; overflow-wrap: anywhere;}
+.qn-raw {white-space: pre-wrap; overflow-wrap: anywhere; max-block-size: 24rem; overflow: auto; font-size: .8125rem; border: 1px solid var(--qn-border); padding: .75rem;}
+.qn-records {display: grid; gap: 1rem;}
+.qn-records > li {display: grid; gap: .75rem; padding-block: .75rem; border-block-end: 1px solid var(--qn-border); min-inline-size: 0;}
+.qn-skeleton {display: grid; gap: 1rem; min-block-size: 8rem; padding-block: 1rem;}
+.qn-bootstrap {display: grid; align-content: start; gap: 1rem; padding: 2rem;}
+@media (max-width: 64rem) {
+  .qn-body {grid-template-columns: minmax(0, 1fr);}
+  .qn-nav {display: none; border-inline-end: 0;}
+  .qn-nav-open .qn-nav {display: flex;}
+  .qn-main, .qn-workspace {padding: 1rem;}
+  .qn-account {margin-inline-start: 0;}
+}
+@media (max-width: 30rem) {
+  .qn-masthead {gap: .75rem;}
+  .qn-scope, .qn-account, .qn-theme {flex: 1 1 100%;}
+  .qn-main {padding: .5rem;}
+  .qn-workspace {padding: .75rem;}
+}
+@media (pointer: coarse) {
+  .qn-app button, .qn-app input, .qn-app select {min-block-size: 2.75rem;}
+  .qn-records a {display: inline-block; padding-block: .5rem;}
+}
+@media (prefers-reduced-motion: reduce) { .qn-app {scroll-behavior: auto;} }
+@media (forced-colors: active) { .qn-inspected {border-inline-start-color: Highlight;} }
