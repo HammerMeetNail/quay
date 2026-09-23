@@ -1,15 +1,15 @@
 # Quay Next: a registry workbench, not another administration console
 
-**Status:** implementation specification, not a shipped application.  
-**Prepared/refined:** 2026-09-22.  
-**Repository baseline:** `HammerMeetNail/quay`, `master` at `f6dfb18d6bfbbf99110ba40459cd3cc06a62d6a1`.  
-**Required stack:** React, TypeScript, PatternFly 6.  
-**Primary development target:** existing quay.io backend, without a local Quay, PostgreSQL, Redis, or Clair deployment.  
+**Status:** first read-only implementation slice on `docs/quay-ui-next-2026-09-22`; not a shipped application or feature/authentication parity. <br>
+**Prepared/refined:** 2026-09-22. <br>
+**Repository baseline:** `HammerMeetNail/quay`, `master` at `f6dfb18d6bfbbf99110ba40459cd3cc06a62d6a1`. <br>
+**Required stack:** React, TypeScript, PatternFly 6. <br>
+**Primary development target:** existing quay.io backend, without a local Quay, PostgreSQL, Redis, or Clair deployment. <br>
 **Design refinement:** informed by `nextlevelbuilder/ui-ux-pro-max-skill` at `dcc40ff5133ef78276117db0cc34e7b83cc8aeba`; manually adapted to Quay and PatternFly, not an unreviewed generated template.
 
 ## Start here
 
-This revision retains the original architecture and implementation task graph while making the visual design and interactions substantially more specific. An agent should implement the plan, not produce a replacement planning document.
+This revision retains the original architecture and implementation task graph while making the visual design and interactions substantially more specific. The first read-only implementation slice landed in `5874f61948fc65d174bfdc7ffece632ee54a546c`; continue the remaining work from the [task state](evidence/STATE.md) and [implementation evidence](evidence/IMPLEMENTATION-STARTER.md), rather than producing a replacement plan.
 
 | Read | Purpose |
 | --- | --- |
@@ -20,6 +20,8 @@ This revision retains the original architecture and implementation task graph wh
 | [IMPLEMENTATION.md](IMPLEMENTATION.md) | Build/transport/preview/component seeds using the existing stack |
 | [EXECUTION.md](EXECUTION.md) | Dependency-ordered tasks QN-00 through QN-12 and agent bootstrap prompt |
 | [UX-REFINEMENT.md](UX-REFINEMENT.md) | Skill applicability decisions, amendments to those tasks, refined test examples, and source/evidence ledger |
+| [Task state](evidence/STATE.md) | Current QN-00–QN-12 progress and remaining gates |
+| [Implementation evidence](evidence/IMPLEMENTATION-STARTER.md) | Exact first-slice checks and public quay.io preview observations |
 
 For presentation conflicts, MASTER plus the applicable page contract supersede earlier illustrative UI snippets. In particular, the desktop artifact inspector is non-modal, the compact-row minimum is no longer approximately 36 px, and global platform/scan filtering is not promised without a real backend contract. Architecture/security/auth rules cannot be weakened by a page override. Read the UX refinement's task amendments before executing QN-02 onward.
 
@@ -147,7 +149,7 @@ The complete feature ledger remains in EXECUTION.md. Simpler navigation does not
 
 ## 7. Real-backend and implementation boundary
 
-The existing architecture specifies local static assets served in an isolated browser at the real quay.io origin, with reviewed requests continuing to the genuine backend. This supports the intended normal-session development path without exporting cookies, disabling browser security, or running a local Quay stack. Its feasibility and provider behavior still require actual live testing early in implementation. The optional localhost API bridge is not full browser-auth parity.
+The first-slice launcher serves local static assets in an isolated browser at the real quay.io origin, with allowlisted reads continuing to the genuine backend. Public `projectquay/quay` browsing, tag/detail inspection, and a digest-scoped security report were verified without a local Quay stack. Private session use and provider behavior remain unverified. The optional localhost API bridge is not full browser-auth parity.
 
 Default live preview remains repository-read-only under a reviewed allowlist; some GETs can have side effects. Authentication evaluation is explicit and separate. Mutations require an authorized disposable scope and the architecture's safeguards. Do not automatically invoke remote signout during cleanup.
 
@@ -157,6 +159,6 @@ The baseline declares React 18, PatternFly 6, React Router 7, and TanStack Query
 
 The first delivery is a polished, real-quay.io repository/tag/detail experience. It is not a static screenshot, a fixture-only mockup, or the final feature-parity release. Execute the existing task graph with the [UX amendments](UX-REFINEMENT.md#4-amendments-to-the-existing-agent-task-graph).
 
-This branch still contains specifications and code examples, not the implemented UI. The refinement's pure presentation-policy seed passed 22 local Node tests; that does not establish browser rendering, PatternFly compilation, accessibility, live authentication, private-repository behavior, or deployed security. Those remain explicit implementation gates. No rendered UI or new auth flow was tested as part of this refinement.
+This branch now contains the separate React/PatternFly read-only workbench, fixture server, and live launcher. Typecheck, fixture/unit tests, Chromium and WebKit rendered tests, existing standalone/plugin builds, and public live reads passed as recorded in the [implementation evidence](evidence/IMPLEMENTATION-STARTER.md). Firefox rendered tests are infrastructure-blocked on this host. Full accessibility and measured performance acceptance, live authentication, private-repository behavior, writes, and deployed security remain open. The earlier refinement's 22 pure Node tests are historical design evidence, not the current implementation result.
 
 Use the agent bootstrap prompt at the end of EXECUTION.md. Its instruction to read this README now includes MASTER, the applicable page contract, and the UX task amendments. Continue implementing independently when an external integration is blocked, but never claim auth/feature parity or production readiness while a required gate is unverified.

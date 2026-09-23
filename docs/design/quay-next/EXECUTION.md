@@ -2,6 +2,8 @@
 
 This is the implementation work order for [README.md](README.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [IMPLEMENTATION.md](IMPLEMENTATION.md). Do not replace implementation with another proposal. Do not declare success based on a static mockup, fabricated data, a green unit-test run alone, or a native login that never exercises the new auth UI.
 
+**Current checkpoint (2026-09-23):** The first read-only repository/tag/artifact slice is committed at `5874f61948fc65d174bfdc7ffece632ee54a546c` on `docs/quay-ui-next-2026-09-22`. Public quay.io reads and Chromium/WebKit rendering were verified; Firefox launch is infrastructure-blocked, and private/authentication, write, full parity, accessibility/performance, and production gates remain open. See [task state](evidence/STATE.md) and [exact check outcomes](evidence/IMPLEMENTATION-STARTER.md). The QN-00–QN-12 work orders below remain the acceptance contract; partial implementation does not complete a task whose gates are still open.
+
 ## 1. Working rules and agent authority
 
 Read repository-root and applicable directory instructions before editing. Respect protected-file and CI conventions. Start from the plan branch and create an implementation branch; never push to `quay/quay` or merge into the user's default branch automatically. Use small, coherent commits with the repository's commit-message convention. Do not fabricate issue IDs. For a change without a supplied issue, use an appropriate `NO-ISSUE:` message.
@@ -66,7 +68,7 @@ Testing is part of every task; QN-10 is an adversarial and cross-cutting pass, n
 
 ### QN-00 — Inventory the real product and freeze contracts
 
-**Depends on:** nothing.  
+**Depends on:** nothing. <br>
 **Deliverables:** `evidence/baseline.md`, `evidence/api-contracts.md`, `evidence/auth-parity.md`, `evidence/feature-parity.md`, initial `evidence/STATE.md`.
 
 Read `AGENTS.md`, applicable `web/AGENTS.md`, `web/playwright/AGENTS.md`, current manifests/lockfile, build entries, existing React routes/resources, legacy Angular routes/auth pages, backend auth/CSRF handlers, API documentation, and current CI configuration. Do not assume the React UI is the complete feature inventory.
@@ -79,7 +81,7 @@ Build the full feature-parity table using the template below. Every required fam
 
 ### QN-01 — Prove the live-backend preview before depending on it
 
-**Depends on:** QN-00.  
+**Depends on:** QN-00. <br>
 **Deliverables:** preview policy, launcher, asset-overlay fixture integration tests, `evidence/live-preview.md`.
 
 Implement the narrow policy and local fixture-origin overlay test first. Verify asset-path/symlink containment, request-method/query restrictions, service-worker and websocket policy, native/preview phase isolation, cookie propagation, and CSRF rotation using the fixture server. Expand the policy only for source-reviewed operations. Keep this harness outside the existing no-intercept Quay E2E tree.
@@ -92,7 +94,7 @@ Then run a headed browser with a minimal local static page at the real quay.io p
 
 ### QN-02 — Build the new shell and visual system independently
 
-**Depends on:** QN-00.  
+**Depends on:** QN-00. <br>
 **Deliverables:** new webpack entry, strict TypeScript configuration, separate output, asset manifest, RegistryShell, common query/evidence/command components, token layer, deterministic contract server, visual baselines.
 
 Use the existing React/PatternFly-compatible lockfile. Implement the four-category navigation, registry/environment identity, namespace selector, accessible global jump dialog, responsive shell, and light/dark/system theme. Build the workbench and artifact-drawer skeletons to the wireframes, not old route components. Add the new script interface from IMPLEMENTATION.md.
@@ -103,7 +105,7 @@ Give fixture mode an unavoidable Demo data indicator. Preserve status messages a
 
 ### QN-03 — Implement typed transport, identity, and capability boundaries
 
-**Depends on:** QN-01 and QN-02 for final integration; pure transport work may start after QN-00.  
+**Depends on:** QN-01 and QN-02 for final integration; pure transport work may start after QN-00. <br>
 **Deliverables:** operation catalog, response parsers, session-generation model, CSRF client, capability adapter, QueryClient lifecycle, permission/state normalization.
 
 Integrate `/config`, `/api/v1/user/`, and `/csrf_token`. Implement bounded JSON parsing, canonical paths, timeouts/cancellation, CSRF single-flight and rotation, typed errors, no mutation retries, and an explicit anonymous state. Query keys and caches must not cross account or target boundaries. Do not persist server data to localStorage.
@@ -114,7 +116,7 @@ Implement source-verified direct/external auth operations behind interfaces, but
 
 ### QN-04 — Deliver the useful repository workbench
 
-**Depends on:** QN-03.  
+**Depends on:** QN-03. <br>
 **Deliverables:** namespace contexts, repository table, recent/starred entry points, verified search, pagination, create-action capability presentation, URL state.
 
 Load only the first relevant page. Preserve opaque cursors and partial coverage. Implement backend stars only using the verified contract; keep recent history session-only. Persist only nonsecret preferences such as density/theme/tool choice. Provide a useful anonymous public entry without sign-in loops.
@@ -125,7 +127,7 @@ Implement server search where verified, and label any loaded-page-only filtering
 
 ### QN-05 — Deliver tag browsing, exact references, and artifact detail
 
-**Depends on:** QN-04.  
+**Depends on:** QN-04. <br>
 **Deliverables:** tags-first repository workspace, page/search contract, URL-backed drawer/full-page detail, digest-safe reference builders, platform selection, metadata/labels sections.
 
 Implement tag pagination according to the real backend's page convention and `has_additional`. Keep tag and digest identities separate. Implement index versus child platform selection, sparse-child presentation, optional size semantics, expiration/immutability indicators, and safe description/metadata rendering.
@@ -136,7 +138,7 @@ Create Podman/Docker reference builders with validated registry/repository/tag/d
 
 ### QN-06 — Add security evidence and optional OCI relationships
 
-**Depends on:** QN-05.  
+**Depends on:** QN-05. <br>
 **Deliverables:** scan report normalization/detail, per-platform evidence model, optional artifact/subject/referrer metadata, capability probes, adversarial content fixtures.
 
 Use exact manifest digests for reports. Separate not-requested, pending, unsupported, unavailable, partial, stale/unknown-time, and reported states. Show affected package/version/advisory/fix only when provided. Deduplicate repeated digests and use bounded visible-only polling. Never synthesize repository-wide scan totals from incomplete rows.
@@ -147,7 +149,7 @@ Inventory the actual backend's OCI artifact/referrer/signature/SBOM/model-card c
 
 ### QN-07 — Implement safe mutations and understandable access
 
-**Depends on:** QN-05 and the QN-03 intent/permission foundation.  
+**Depends on:** QN-05 and the QN-03 intent/permission foundation. <br>
 **Deliverables:** create/retag/expiration/restore/immutability workflows, repository settings, effective-access views, team/robot/default-permission workflows, scoped mutation tests.
 
 Reproduce existing API semantics, not the old page hierarchy. Recheck capability and permissions before enabling and submitting operations. Separate reversible expiration/removal from permanent deletion. Show exact scope and recoverability; require stronger confirmation for irreversible/bulk/credential actions. Mutations are disabled in the default live preview even when the real account can write.
@@ -160,7 +162,7 @@ Implement people/teams/robots with direct/inherited grant provenance, effective 
 
 ### QN-08 — Complete authentication parity, not just login appearance
 
-**Depends on:** QN-03; can proceed beside QN-06/QN-07.  
+**Depends on:** QN-03; can proceed beside QN-06/QN-07. <br>
 **Deliverables:** redesigned login/account flows, complete auth-parity matrix, provider navigation/return handling, fresh-login intents, expiry/logout, host-plugin adapter/tests.
 
 Implement every inventoried auth flow, including feature-gated direct login, configured OAuth/OIDC providers, SSO-only behavior, LDAP-backed login where relevant, account completion, invitations, verification/recovery/reset, CAPTCHA/challenges, external link/unlink, CLI continuation, consent/authorizations, and existing MFA semantics. Do not create new identity storage.
@@ -173,7 +175,7 @@ Handle logout as a real remote operation with the inspected all-sessions semanti
 
 ### QN-09 — Finish the feature-parity inventory
 
-**Depends on:** relevant QN-06/07/08 interfaces.  
+**Depends on:** relevant QN-06/07/08 interfaces. <br>
 **Deliverables:** builds/triggers/logs, mirroring, notifications, audit/activity, quotas/retention, account/application/billing, administrative areas, legacy link compatibility.
 
 Implement remaining families identified in QN-00. Group related tasks into the new navigation rather than copying every old tab. Every feature uses verified contracts and capabilities; missing quay.io support is testable through its real supported deployment environment, not a made-up endpoint.
@@ -184,7 +186,7 @@ Retain useful errors, status banners, registry messages, contact/help/security p
 
 ### QN-10 — Adversarial security, accessibility, and performance pass
 
-**Depends on:** all implemented feature families.  
+**Depends on:** all implemented feature families. <br>
 **Deliverables:** security matrix results, accessibility report, coverage report, browser/theme baselines, measured performance/bundle report, dependency/secret-scan results.
 
 Run the matrix below. Verify the actual production bundle does not include fixture handlers, test tokens, development servers, private samples, duplicate design-system styles, or unnecessary initial libraries. Exercise XSS in every untrusted text surface, unsafe navigation/reference/export cases, identity races, permission revocation, malformed/oversized responses, pagination edge cases, and reauth/network uncertainty.
@@ -195,7 +197,7 @@ Audit keyboard focus through menus, dialogs, drawers, pagination, and error stat
 
 ### QN-11 — Integrate production routing, headers, canary, and rollback
 
-**Depends on:** QN-10; infrastructure work may be prepared earlier.  
+**Depends on:** QN-10; infrastructure work may be prepared earlier. <br>
 **Deliverables:** static-asset integration, route/caching/header rules, deployment-controlled canary switch, rollback runbook, standalone/plugin compatibility report.
 
 Serve the new SPA on an opt-in same-origin route with hashed assets. Do not intercept API, distribution, auth, email, or callback routes with a blanket SPA fallback. Test deep links, auth returns, old links, relative asset resolution, CSP, cache headers, no-sniff, and actual cookie behavior through the real reverse proxy. Separate long-lived immutable asset caching from short-lived HTML/config policy.
@@ -206,7 +208,7 @@ Integrate checks using the repository's existing GitHub/Tekton/Konflux conventio
 
 ### QN-12 — Final acceptance and handoff
 
-**Depends on:** all required preceding gates.  
+**Depends on:** all required preceding gates. <br>
 **Deliverables:** `evidence/ACCEPTANCE.md`, updated task/feature/auth ledgers, operator/developer instructions, known-limitations list, release recommendation.
 
 Run the full acceptance suite and the five everyday tasks below. Provide exact commands and environment, links to commits, screenshots using synthetic/public data only, measured budgets, test/coverage summaries, and any blocked external integrations. Include a clean-checkout run-through of `next:build:preview` and `next:preview` against a real repository.
