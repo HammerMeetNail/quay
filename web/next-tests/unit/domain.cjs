@@ -41,6 +41,10 @@ test('tags require positive pages', () => assert.throws(() => d.parseTags({ tags
 test('sparse presence and unknown immutable state', () => { const t = d.parseTags({ tags: [tag], page: 1, has_additional: true }).tags[0]; assert.equal(t.presence[sha512], false); assert.equal(t.immutable, null); assert.equal(t.signature, false); });
 test('unsupported digest can be displayed without being fetchable', () => { const t = d.parseTags({ tags: [{ ...tag, manifest_digest: 'future:abc' }], page: 1, has_additional: false }).tags[0]; assert.equal(t.digest, 'future:abc'); assert.throws(() => o.operationPath({ kind: 'manifest', namespace: 'acme', repository: 'app', digest: t.digest })); });
 test('manifest parsing retains index/child identity', () => { const m = d.parseManifest({ digest: sha, is_manifest_list: true, manifest_data: JSON.stringify({ manifests: [{ digest: sha512, platform: { os: 'linux', architecture: 'arm64', variant: 'v8' } }] }) }); assert.equal(m.platforms[0].label, 'linux/arm64/v8'); assert.equal(m.platforms[0].digest, sha512); assert.equal(m.compressedBytes, null); });
+test('attestation descriptors are not offered as pull platforms', () => { const m = d.parseManifest({ digest: sha, is_manifest_list: true, manifest_data: JSON.stringify({ manifests: [
+    { digest: sha, platform: { os: 'linux', architecture: 'amd64' } },
+    { digest: sha512, annotations: { 'vnd.docker.reference.type': 'attestation-manifest' }, platform: { os: 'unknown', architecture: 'unknown' } },
+  ] }) }); assert.deepEqual(m.platforms.map(p => p.label), ['linux/amd64']); });
 test('invalid inner manifest JSON', () => assert.throws(() => d.parseManifest({ digest: sha, is_manifest_list: false, manifest_data: '{' })));
 test('oversized inner manifest', () => assert.throws(() => d.parseManifest({ digest: sha, is_manifest_list: false, manifest_data: ' '.repeat(2 * 1024 * 1024 + 1) })));
 test('labels remain inert text', () => assert.deepEqual(d.parseLabels({ labels: [{ key: 'x', value: '<script>alert(1)</script>' }] }), [{ key: 'x', value: '<script>alert(1)</script>' }]));

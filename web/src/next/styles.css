@@ -155,7 +155,9 @@
 .qn-digest-preview { display: block; font-size: .75rem; margin-top: .25rem; overflow-wrap: anywhere; }
 .qn-platform-summary { display: grid; gap: .35rem; }
 .qn-platform-chips { display: flex; flex-wrap: wrap; gap: .375rem; padding: 0; margin: 0; list-style: none; }
-.qn-platform-chips li { padding: .125rem .375rem; border-radius: .25rem; border: 1px solid var(--qn-line); font-size: .75rem; overflow-wrap: anywhere; }
+.qn-platform-chips li { display: inline-flex; align-items: center; gap: .375rem; padding: .125rem .375rem; border-radius: .25rem; border: 1px solid var(--qn-line); font-size: .75rem; overflow-wrap: anywhere; }
+.qn-platform-icon { display: inline-flex; flex: none; color: var(--qn-accent); }
+.qn-platform-icon svg { width: 1rem; height: 1rem; }
 .qn-platform-chips code { white-space: normal; }
 .qn-download-size { display: grid; gap: .0625rem; color: var(--qn-text); font-size: .875rem; font-variant-numeric: tabular-nums; }
 .qn-download-size strong { font-weight: 600; }
@@ -216,7 +218,7 @@
   .qn-app button, .qn-modal button, .qn-main-link { min-height: 2.75rem; min-width: 2.75rem; }
   .qn-app input, .qn-app select { font-size: 1rem; min-height: 2.75rem; }
   .qn-brand-next { display: none; }
-  .qn-account span { max-width: 6rem; overflow-wrap: anywhere; }
+  .qn-account-label { display: none; }
   .qn-main { padding: 1rem .75rem; }
   .qn-heading { margin-bottom: 1rem; }
   .qn-filter-row { align-items: flex-start; }
@@ -255,6 +257,8 @@
 .pf-v6-theme-dark .qn-app { --qn-canvas: #0b141c; --qn-surface: #101c25; --qn-raised: #192936; --qn-line: #223542; --qn-selected: #142e43; --qn-accent: #55b5ff; }
 .qn-brand { font-size: 1.5rem; }
 .qn-brand svg { width: 2rem; height: 2rem; }
+.qn-brand-mark { width: 2rem; height: 2rem; flex: none; background: url(./quay-mark.svg) center / contain no-repeat; }
+.pf-v6-theme-dark .qn-brand-mark { background-image: url(./quay-mark-dark.svg); }
 .qn-masthead { padding-inline: 1.25rem; }
 .qn-header-search { display: flex; width: 100%; justify-content: flex-start; gap: .75rem; border: 1px solid var(--qn-line); border-radius: .5rem; background: var(--qn-surface); color: var(--qn-muted); font-size: .875rem; padding: .65rem .875rem; }
 .qn-header-search kbd { margin-left: auto; padding: .125rem .35rem; border-radius: .25rem; background: var(--qn-raised); font-size: .75rem; }
@@ -275,6 +279,14 @@
 .qn-quick-actions .qn-main-link { background: var(--qn-raised); color: var(--qn-accent) !important; border: 1px solid var(--qn-line); }
 .qn-preview-identity .qn-repo-glyph { width: 3rem; height: 3rem; }
 .qn-preview-identity .qn-repo-glyph svg { width: 1.75rem; height: 1.75rem; }
+.qn-preview-name { display: flex; align-items: baseline; flex-wrap: wrap; gap: .25rem .5rem; }
+.qn-preview-name h1, .qn-preview-name h2 { margin: 0; font-size: 1.125rem; }
+.qn-preview-name > .qn-secondary { font-size: 1rem; }
+.qn-preview-about { display: grid; gap: .5rem; padding-block: .5rem; }
+.qn-preview-about h3 { font-size: .875rem; }
+.qn-preview-about .qn-about-text { color: var(--qn-muted); }
+.qn-quick-actions .qn-main-link { justify-self: start; }
+.qn-repository-preview .qn-tabs strong { color: var(--qn-accent); }
 .qn-repository-preview .qn-tabs { margin: 0; gap: 1.5rem; font-size: .875rem; }
 .qn-repository-preview .qn-section { border: 1px solid var(--qn-line); border-radius: .625rem; padding: 1rem; background: var(--qn-surface); }
 .qn-app .qn-workbench h1 { font-size: 1.875rem; }

@@ -86,8 +86,8 @@ export const RepositoryPreview: React.FC<{
       </div>
       <div className="qn-preview-identity">
         <RepositoryGlyph />
-        <div>
-          <p className="qn-secondary">{ns}</p>
+        <div className="qn-preview-name">
+          <span className="qn-secondary">{ns} /</span>
           <Heading id="repository-preview-heading" ref={heading} tabIndex={-1}>
             {repo}
           </Heading>
@@ -116,14 +116,10 @@ export const RepositoryPreview: React.FC<{
               <p>{details.data.access}</p>
             </section>
           </div>
-          <p className="qn-about-text">
-            {descriptionText(details.data.description) ||
-              'No description provided.'}
-          </p>
         </>
       )}
       <section className="qn-overview-card qn-quick-actions">
-        <h3>Pull an exact image</h3>
+        <h3>Quick actions</h3>
         <p className="qn-secondary">
           Choose a tag to inspect its platforms and copy an immutable pull
           command.
@@ -132,6 +128,18 @@ export const RepositoryPreview: React.FC<{
           Browse tags &amp; artifacts <ArrowRightIcon aria-hidden="true" />
         </Link>
       </section>
+      {!details.isError && details.data && (
+        <section
+          className="qn-preview-about"
+          aria-labelledby="preview-about-heading"
+        >
+          <h3 id="preview-about-heading">About</h3>
+          <p className="qn-about-text">
+            {descriptionText(details.data.description) ||
+              'No description provided.'}
+          </p>
+        </section>
+      )}
       <section className="qn-section" aria-labelledby="preview-tags-heading">
         <div className="qn-section-title">
           <h3 id="preview-tags-heading">Tags</h3>

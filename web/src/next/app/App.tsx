@@ -266,8 +266,8 @@ export const App: React.FC = () => {
               onClick={() => setNavigationOpen(true)}
             />
           )}
-          <Link to="/" className="qn-brand">
-            <CubesIcon aria-hidden="true" />
+          <Link to="/" className="qn-brand" aria-label="Quay Next home">
+            <span className="qn-brand-mark" aria-hidden="true" />
             <span>QUAY</span>
             <span className="qn-brand-next">NEXT</span>
           </Link>
@@ -330,11 +330,16 @@ export const App: React.FC = () => {
           <Button
             variant="plain"
             className="qn-account"
+            aria-label={
+              identity.kind === 'user'
+                ? `Account: ${identity.username}`
+                : 'Sign-in help and session'
+            }
             onClick={showControls}
             icon={<UserIcon aria-hidden="true" />}
           >
-            <span>
-              {identity.kind === 'user' ? identity.username : 'Sign in'}
+            <span className="qn-account-label">
+              {identity.kind === 'user' ? identity.username : 'Sign-in help'}
             </span>
           </Button>
         </div>

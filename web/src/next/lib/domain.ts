@@ -276,15 +276,23 @@ export function parseManifest(value: unknown): Manifest {
   const platforms =
     data.manifests == null
       ? []
-      : array(data.manifests, 1000).map((v) => {
+      : array(data.manifests, 1000).flatMap((v) => {
           const descriptor = record(v);
+          const annotations = record(descriptor.annotations ?? {});
+          // Build attestations describe provenance, not runnable platforms.
+          if (
+            annotations['vnd.docker.reference.type'] === 'attestation-manifest'
+          )
+            return [];
           const p = record(descriptor.platform ?? {});
           const parts = [
             optionalText(p.os, 128) ?? 'unknown OS',
             optionalText(p.architecture, 128) ?? 'unknown architecture',
             optionalText(p.variant, 128),
           ].filter(Boolean);
-          return {digest: text(descriptor.digest, 512), label: parts.join('/')};
+          return [
+            {digest: text(descriptor.digest, 512), label: parts.join('/')},
+          ];
         });
   return {
     digest: text(x.digest, 512),

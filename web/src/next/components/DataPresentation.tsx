@@ -1,6 +1,15 @@
 import React, {useId, useState} from 'react';
 import {Button} from '@patternfly/react-core';
-import {CubeIcon, GlobeIcon, LockIcon, StarIcon} from '@patternfly/react-icons';
+import {
+  AppleIcon,
+  CubeIcon,
+  GlobeIcon,
+  LinuxIcon,
+  LockIcon,
+  ServerIcon,
+  StarIcon,
+  WindowsIcon,
+} from '@patternfly/react-icons';
 import {bytesLabel, dateLabel, type Manifest} from '../lib/domain';
 import {
   platformLabels,
@@ -89,6 +98,22 @@ export const DownloadSize: React.FC<{
     </span>
   );
 };
+const PlatformIcon: React.FC<{label: string}> = ({label}) => {
+  const os = label.split('/')[0]?.toLowerCase() ?? '';
+  const Icon =
+    os === 'linux'
+      ? LinuxIcon
+      : os === 'windows'
+        ? WindowsIcon
+        : os === 'darwin'
+          ? AppleIcon
+          : ServerIcon;
+  return (
+    <span className="qn-platform-icon" data-platform-os={os} aria-hidden="true">
+      <Icon />
+    </span>
+  );
+};
 export const PlatformList: React.FC<{
   manifest?: Manifest;
   index: boolean;
@@ -118,6 +143,7 @@ export const PlatformList: React.FC<{
       >
         {(expanded ? labels : labels.slice(0, 2)).map((label) => (
           <li key={label}>
+            <PlatformIcon label={label} />
             <code>{label}</code>
           </li>
         ))}

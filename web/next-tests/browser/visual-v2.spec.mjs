@@ -29,9 +29,17 @@ test('sign-in help is an intentional modal, not a permanent workbench banner', a
 
 test('repository preview preserves the table and restores its trigger', async ({page}) => {
   await page.goto(base);
+  await expect(page.locator('.qn-brand-mark')).toHaveCSS('background-image', /quay-mark/);
+  expect(await page.locator('.qn-brand-mark').evaluate(async (mark) => {
+    const image = new Image();
+    image.src = getComputedStyle(mark).backgroundImage.match(/^url\(["']?(.*?)["']?\)$/)?.[1] ?? '';
+    try { await image.decode(); return image.naturalWidth > 0; } catch { return false; }
+  })).toBe(true);
   const trigger = page.getByRole('button', {name: 'Preview payments', exact: true});
   await trigger.click();
   await expect(page.getByRole('complementary', {name: /payments/})).toBeVisible();
+  await expect(page.getByRole('heading', {name: 'Quick actions'})).toBeVisible();
+  await expect(page.getByRole('heading', {name: 'About', exact: true})).toBeVisible();
   await expect(page.getByRole('table', {name: 'Repositories', exact: true})).toBeVisible();
   await expect(page.getByRole('link', {name: 'Browse tags & artifacts'})).toBeVisible();
   await expect(page.getByText('Healthy', {exact: true})).toHaveCount(0);
@@ -49,6 +57,10 @@ test('visible platform labels load without another click and deduplicate shared 
   await expect(page.getByRole('table', {name: 'Tags and artifacts'})).toBeVisible();
   await expect(page.getByText('linux/amd64', {exact: true}).first()).toBeVisible();
   await expect(page.getByText('linux/arm64/v8', {exact: true}).first()).toBeVisible();
+  const linuxPlatform = page.getByRole('list', {name: 'Advertised platforms'}).first()
+    .getByRole('listitem').filter({hasText: 'linux/amd64'});
+  await expect(linuxPlatform.locator('[data-platform-os="linux"] svg')).toBeVisible();
+  await expect(linuxPlatform.locator('[data-platform-os="linux"]')).toHaveAttribute('aria-hidden', 'true');
   expect(manifestRequests).toHaveLength(1); // v2.8.1 and stable point to the same index in this fixture.
   expect(securityRequests).toHaveLength(0);
 });
@@ -61,6 +73,22 @@ test('mobile navigation has one namespace control, closes with Escape, and retur
   const dialog = page.getByRole('dialog', {name: 'Registry navigation', exact: true});
   await expect(dialog).toBeVisible(); await expect(page.locator('#namespace-scope')).toHaveCount(1);
   await page.keyboard.press('Escape'); await expect(dialog).toHaveCount(0); await expect(trigger).toBeFocused();
+});
+
+test('dark mobile mark renders and anonymous account opens sign-in guidance', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await page.addInitScript(() => localStorage.setItem('quay-next.theme', 'dark'));
+  await page.route('**/api/v1/user/', route => route.fulfill({json: {anonymous: true}}));
+  await page.goto(base);
+  await expect(page.locator('.qn-brand-mark')).toHaveCSS('background-image', /quay-mark-dark/);
+  const markLoaded = await page.locator('.qn-brand-mark').evaluate(async mark => {
+    const image = new Image();
+    image.src = getComputedStyle(mark).backgroundImage.match(/^url\(["']?(.*?)["']?\)$/)?.[1] ?? '';
+    try { await image.decode(); return image.naturalWidth > 0; } catch { return false; }
+  });
+  expect(markLoaded).toBe(true);
+  await page.getByRole('button', {name: 'Sign-in help and session'}).click();
+  await expect(page.getByRole('dialog', {name: 'Preview controls & session'})).toBeVisible();
 });
 
 test('mobile repository preview is a main page with a safe return', async ({page}) => {

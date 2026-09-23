@@ -1,0 +1,32 @@
+# Reference audit and platform icons
+
+September 23, 2026, on `HammerMeetNail/quay:docs/quay-ui-next-2026-09-22`. This follows the [V2 design](../VISUAL-REVISION-2.md), [rendered alignment](VISUAL-ALIGNMENT.md), and [live first-open correction](LIVE-FIRST-OPEN.md). It records the owner's second review against the original 1536 × 1024 planning image and the current `projectquay/quay` public API. It does not replace historical test evidence or close the remaining [QN gates](STATE.md).
+
+## Reference-to-API examination
+
+| Planning image | Current truthful implementation | API or safety boundary |
+| --- | --- | --- |
+| Quay brand, desktop sidebar, repository table, contextual overview and four-part footer | Kept the reference silhouette; use the existing Quay mark with a readable dark variant and a compact overview identity, Quick actions and About hierarchy. Recent entries are in-memory visits, not invented history. | Shell and recent state are local presentation; repository facts below come from Quay. |
+| Repository names, descriptions, visibility, update time and filters | Show real list fields; All/Public/Private/Starred and sort/search describe only the loaded response page. Starred appears only when account state is supplied. | `GET /api/v1/repository?namespace=…&public=true&last_modified=true`; no global search or namespace total is inferred. |
+| Platform logos in a repository-wide list column | Real OS icons now accompany canonical OCI labels in **tag and artifact** platform cells. An icon is decorative, the full label remains accessible, and unrecognized OS names use a neutral server icon. | The list response has no repository platform set. Index descriptors arrive from the exact manifest endpoint; only visible current-page index rows are enriched, with existing request/deduplication bounds. |
+| Linux, Windows and Apple marks | Linux/Windows icons follow reported `linux/*` and `windows/*`; Apple follows reported `darwin/*`, never an ARM architecture alone. | No OS or CPU is guessed. Ordinary manifests without platform descriptors still say “Platform not reported.” |
+| `unknown/unknown` index entries | Docker attestation manifests are removed from runnable platform choices. | Public `projectquay/quay` OCI indexes include attestation descriptors marked `vnd.docker.reference.type=attestation-manifest`; they are provenance artifacts, not pull targets. |
+| Repository-wide “Healthy,” size, tag total, star total, storage and topics | No synthetic number or verdict is shown. Repository overview shows real visibility, access, description and first returned tags. | Health belongs to a selected digest/report; size belongs to a tag or child manifest. List/detail reads do not provide the screenshot's remaining totals or topics. API `popularity` is an action count, not star count. |
+| Default `:latest` command, Create repository, Star mutation, admin/activity/settings links | The overview links to tags; an immutable command appears after selecting an exact digest/target. Write and unimplemented destinations remain absent. | Scoped live preview permits approved reads only; native sign-in and full parity are separate gates. |
+| Global package/digest search and bottom promotional claims | Header Find leads to the loaded-page repository filter. Footer gives accurate task guidance. | The current adapter does not implement global search; no result count implies complete registry inventory. |
+
+This audit found a real presentation gap in the tag table: platform labels were text-only even when the API provided an OS. It also found that the source square SVG contained a trailing invalid XML character, so a new preview-local copy was required for the brand mark. The dark variant preserves the same paths with brighter colors. Mobile retains one account control, labeled “Sign-in help” for anonymous users because it opens guidance rather than authenticating.
+
+## Validation
+
+The source was copied to `/tmp/quay-next-v2-validation/web`, where pnpm 10.28.0 installed the actual frozen lockfile dependencies. The owner's unrelated `web/pnpm-lock.yaml` and ZIPs were not modified or staged. Logs and captures remain outside the checkout.
+
+| Check | Result |
+| --- | --- |
+| `npx --yes pnpm@10.28.0 run next:check` | Passed: 281 unit tests, typecheck, syntax and Next production build. Two existing webpack asset-size warnings. Log: `/tmp/quay-next-v2-integration/platform-fidelity-final2-check.log`. |
+| `QUAY_NEXT_PORT=4319 npx --yes pnpm@10.28.0 exec playwright test --config playwright.next.alignment.config.mjs --project=chromium --project=webkit next-tests/browser/visual-v2.spec.mjs --grep 'dark mobile mark\|repository preview preserves\|visible platform labels'` | Passed: six focused browser cases. They check decoded brand assets, anonymous mobile guidance, preview hierarchy/focus and visible Linux icons. Log: `/tmp/quay-next-v2-integration/platform-fidelity-final2-focused.log`. |
+| Full Chromium/WebKit browser suite, same command without the spec/grep filters | Passed with exit status 0: 123 passed, one intentional WebKit clipboard-permission skip, zero failures. Log: `/tmp/quay-next-v2-integration/platform-fidelity-final2-browser.log`. |
+| Built demo render | Reviewed light/dark desktop workbench and tag page, plus 390-pixel mobile workbench/preview. Actual captures: `/tmp/quay-next-v2-integration/alignment-screenshots/` and `/tmp/quay-next-v2-integration/{dark,light}-platform-icons.png`. No document horizontal overflow in recorded widths. |
+| Scoped public live run | Launched the native `next:preview` with `QUAY_NEXT_REPOSITORIES=projectquay/quay` and exited normally. An isolated headless run using the same read policy, local production build and real quay.io API rendered four platform icons at capture time, no `unknown/unknown` pull targets, no other repository detail reads, no page errors and no document horizontal overflow. It made seven bounded visible manifest reads at capture time. Capture: `/tmp/quay-next-v2-integration/live-platform-icons.png`; audit script: `/tmp/quay-next-v2-integration/verify-live-platforms.mjs`; result: `/tmp/quay-next-v2-integration/platform-fidelity-final-live.log`. No sign-in, private access, write or scanner request was exercised. |
+
+The reference remains a composition target, not a source of API facts. Firefox, screen-reader review, private authentication and full production parity remain open as recorded in [STATE.md](STATE.md).

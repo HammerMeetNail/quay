@@ -41,3 +41,7 @@ After the owner compared the running UI with the planning image, `abb272c4983024
 ## Live first-open correction
 
 `ee93eb68260e7ec6682bc23205c5d6e75d96716a` changed the launcher to open a desktop-sized native window and show the first exact allowlisted repository in the initial live overview. The display is passive with respect to URL, history and focus, and its automatic reads are limited to that repository's detail and first tag page. [LIVE-FIRST-OPEN.md](LIVE-FIRST-OPEN.md) records the full browser gate and actual public quay.io observation. The prior visual-alignment record describes the earlier explicit-selection state; this follow-up supersedes that behavior. The QN release gates remain open.
+
+## Reference and platform follow-up
+
+The owner's second screenshot comparison found missing icons in the live tag table. [REFERENCE-AND-PLATFORMS.md](REFERENCE-AND-PLATFORMS.md) audits the visible reference features against existing API fields and records the platform-icon, attestation, brand and overview corrections with new rendered and public-read evidence. Repository-wide metrics and write/admin features remain outside this read-only slice; the QN gates above remain open.
