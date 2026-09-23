@@ -19,3 +19,17 @@ Updated September 23, 2026 for the first read-only slice on `docs/quay-ui-next-2
 | QN-12 release acceptance | Not run | — | First-slice evidence and gaps recorded | Complete every required feature/auth matrix and acceptance gate before a release claim. |
 
 Next work follows the existing dependency graph: finish QN-00 inventories and missing contract evidence, then close QN-01 private/auth acceptance with human participation while completing the independently testable QN-02–QN-06 gates. Keep Firefox as an infrastructure blocker until it runs on a working browser host. Do not interpret the public read-only preview as authorization for live writes.
+
+## Presentation revision 2 — integration checkpoint
+
+The approved composition is now specified in [VISUAL-REVISION-2.md](../VISUAL-REVISION-2.md) and [MOBILE-V2.md](../MOBILE-V2.md). The code delta was prepared against `b1d8ae900ef53825b01393a16078934a66ac5de4`; it builds on, rather than replaces, the first read-only slice above.
+
+| Work | Integration state | Evidence boundary |
+| --- | --- | --- |
+| V2-01 baseline-aware bundle | Integrated in `0c7d6caf8` | SHA-256 verified; installer dry run and apply passed without touching the dirty lockfile or ZIPs. |
+| V2-02/V2-03 shell, workbench, repository preview | Implemented and rendered in `0c7d6caf8` | Actual locked-dependency build, light/dark desktop/mobile captures and scoped public preview reviewed. |
+| V2-04 platform/size/visibility presentation | Public read behavior validated in `0c7d6caf8` | Bounded visible-row metadata, request cancellation/deduplication, digest-specific size and explicit reports tested; native login unchanged. |
+| V2-05 mobile/browser acceptance | Chromium/WebKit passed; Firefox infrastructure-blocked | 109 full browser tests passed with one intentional WebKit permission skip; 32 V2 tests passed after final observer-assertion fix. Screen-reader/private acceptance remains. |
+| V2-06 final evidence | Recorded | Exact new commands, render measurements, live public data, limitations and local artifact paths are in [VISUAL-REVISION-2.md](VISUAL-REVISION-2.md). |
+
+The QN task history above remains in progress. QN-07–QN-12 are not completed by this presentation revision. The existing dirty lockfile and ZIP remain outside the presentation delta.
