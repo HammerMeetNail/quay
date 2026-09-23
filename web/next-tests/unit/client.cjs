@@ -1,0 +1,33 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { RegistryClient, readJson, ApiError, SessionChanged, errorMessage } = require('../../.next-test-output/client.js');
+const json = value => new Response(JSON.stringify(value), { headers: { 'content-type': 'application/json' } });
+test('read-only transport protects origin, credentials, redirects and cache', async () => {
+    let init, url;
+    const client = new RegistryClient('https://quay.io', async (u, i) => { url = u; init = i; return json({ ok: true }); });
+    assert.deepEqual(await client.get({ kind: 'config' }, x => x), { ok: true });
+    assert.equal(url.href, 'https://quay.io/config');
+    assert.equal(init.method, 'GET');
+    assert.equal(init.credentials, 'same-origin');
+    assert.equal(init.mode, 'same-origin');
+    assert.equal(init.redirect, 'error');
+    assert.equal(init.cache, 'no-store');
+    assert.equal(init.body, undefined);
+});
+test('invalid origin rejected', () => assert.throws(() => new RegistryClient('https://quay.io/path')));
+test('unauthorized resource notifies session owner', async () => { let calls = 0; const client = new RegistryClient('https://quay.io', async () => new Response('', { status: 401 }), () => calls++); await assert.rejects(client.get({ kind: 'repository', namespace: 'acme', repository: 'app' }, x => x), ApiError); assert.equal(calls, 1); });
+test('anonymous identity probe does not cause redirect loop', async () => { let calls = 0; const client = new RegistryClient('https://quay.io', async () => new Response('', { status: 401 }), () => calls++); await assert.rejects(client.get({ kind: 'identity' }, x => x), ApiError); assert.equal(calls, 0); });
+test('late previous-session response rejected even when fetch ignores abort', async () => { let resolve; const client = new RegistryClient('https://quay.io', () => new Promise(r => resolve = r)); const flight = client.get({ kind: 'config' }, x => x); client.reset(); resolve(json({ private: 'never render' })); await assert.rejects(flight, SessionChanged); });
+test('reset aborts network controller', async () => { let signal, resolve; const client = new RegistryClient('https://quay.io', (_, i) => { signal = i.signal; return new Promise(r => resolve = r); }); const pending = client.get({ kind: 'config' }, x => x); assert.equal(signal.aborted, false); client.reset(); assert.equal(signal.aborted, true); resolve(json({})); await assert.rejects(pending, SessionChanged); });
+test('already-cancelled caller never issues fetch', async () => { let calls = 0; const client = new RegistryClient('https://quay.io', async () => { calls++; return json({}); }); const aborter = new AbortController(); aborter.abort(); await assert.rejects(client.get({ kind: 'config' }, x => x, aborter.signal)); assert.equal(calls, 0); });
+test('active caller cancellation propagates', async () => { let signal, resolve; const client = new RegistryClient('https://quay.io', (_, init) => { signal = init.signal; return new Promise(r => resolve = r); }); const aborter = new AbortController(); const p = client.get({ kind: 'config' }, x => x, aborter.signal); aborter.abort(); assert.equal(signal.aborted, true); resolve(json({})); await assert.rejects(p, { name: 'AbortError' }); });
+test('policy errors are distinct', async () => { const client = new RegistryClient('https://quay.io', async () => new Response(JSON.stringify({ error_type: 'preview_operation_blocked', secret: 'do not expose' }), { status: 403, headers: { 'content-type': 'application/json' } })); await assert.rejects(client.get({ kind: 'config' }, x => x), error => error.code === 'preview_operation_blocked' && !error.message.includes('secret')); });
+for (const status of [401, 403, 404, 429, 503])
+    test(`safe HTTP error ${status}`, () => assert.ok(errorMessage(new ApiError(status, 'http_error')).length > 0));
+test('network errors never echo URL or credential details', () => assert.doesNotMatch(errorMessage(new Error('https://user:secret@host')), /secret/));
+test('invalid JSON rejected', async () => assert.rejects(readJson(new Response('{', { headers: { 'content-type': 'application/json' } }))));
+test('HTML sign-in response not parsed as data', async () => assert.rejects(readJson(new Response('<html>login</html>', { headers: { 'content-type': 'text/html' } }))));
+test('size cap applies to decoded bytes', async () => assert.rejects(readJson(json({ payload: 'x'.repeat(100) }), 10)));
+test('no body rejected', async () => assert.rejects(readJson(new Response(null, { headers: { 'content-type': 'application/json' } }))));
+test('json suffix supported', async () => assert.deepEqual(await readJson(new Response('{}', { headers: { 'content-type': 'application/problem+json' } })), {}));
+test('response-body identity race rejected', async () => { let release; const stream = new ReadableStream({ start(c) { release = () => { c.enqueue(new TextEncoder().encode('{"old":"identity"}')); c.close(); }; } }); const client = new RegistryClient('https://quay.io', async () => new Response(stream, { headers: { 'content-type': 'application/json' } })); const p = client.get({ kind: 'config' }, x => x); await new Promise(r => setImmediate(r)); client.reset(); release(); await assert.rejects(p, SessionChanged); });

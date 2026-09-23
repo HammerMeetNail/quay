@@ -1,0 +1,5 @@
+# Quay Next local build and test output
+dist-next/
+.next-test-output/
+next-test-results/
+next-playwright-report/
