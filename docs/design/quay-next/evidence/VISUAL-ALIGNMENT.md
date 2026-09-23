@@ -1,0 +1,22 @@
+# Rendered alignment to the planning image
+
+Integrated September 23, 2026 on `docs/quay-ui-next-2026-09-22` in `HammerMeetNail/quay`. Source commit: `abb272c49830241ef5b60d2b31f649f7c533eee8`. This follows, and does not replace, the [V2 integration evidence](VISUAL-REVISION-2.md) or the [first-slice evidence](IMPLEMENTATION-STARTER.md).
+
+The owner compared the running demo with the original 1536 × 1024 planning image and found that the first viewport lacked its compact list, right overview and footer. The earlier actual dark workbench capture was 2,674 pixels tall and had no default overview. The revised desktop capture has a 220-pixel sidebar, a 456-pixel overview rail, eight visible table rows, and a footer beginning at y=914 in a 1,024-pixel viewport. All rows returned on the current API response remain in a keyboard-reachable scroll region. The demo's first repository overview is passive: it creates no URL/history entry and moves no focus. Live mode retains the rail's silhouette but requires an explicit allowlisted selection before detail or tag requests.
+
+The visual correction uses the real repository list fields for name, description, visibility, state and update time, and the real selected repository detail/tag fields for the overview. It does not copy the planning image's invented repository health, aggregate size, star totals, platform icons, storage usage, or default `:latest` command. The footer contains accurate task guidance only on the workbench. The header Find action leads to the loaded-page filter; its keyboard shortcut is functional. The earlier live policy, native sign-in and artifact/clipboard behavior were not changed.
+
+| Check | Outcome | Notes |
+| --- | --- | --- |
+| `npx --yes pnpm@10.28.0 run next:check` | Passed | Clean validation checkout with frozen locked dependencies: 280 tests passed, zero failed/skipped/cancelled; Next build completed with two existing asset-size warnings. |
+| `QUAY_NEXT_PORT=4319 npx --yes pnpm@10.28.0 exec playwright test --config playwright.next.alignment.config.mjs --project=chromium --project=webkit next-tests/browser/visual-v2.spec.mjs` | Passed | 38 focused tests, including passive demo overview, full-row reachability, live no-detail-before-selection, no scanner fan-out, focus and keyboard shortcut. |
+| Same command without the spec path | Passed | Full rendered suite: 115 passed, one intentional WebKit clipboard-permission skip, zero failures. |
+| `node /tmp/quay-next-v2-integration/capture-alignment.mjs` | Passed | Actual production-built light/dark desktop and mobile captures, including mobile preview; 1536- and 390-pixel viewports had no document horizontal overflow. |
+| `QUAY_NEXT_REPOSITORIES=projectquay/quay npx --yes pnpm@10.28.0 run next:preview` | Passed | Scoped public quay.io launcher opened; the genuine namespace returned 26 repositories, `quay` was the approved detail target, and other rows were marked outside preview scope. No live detail, scanner, write, login or private request was made in this follow-up run; exited with `quit`. The earlier evidence records explicit public detail/report checks. |
+| Firefox, screen reader, private sign-in/provider flow, legacy standalone/plugin builds | Not run in this visual follow-up | The prior Firefox infrastructure blocker and remaining QN gates are unchanged. Next-only source changed; prior legacy build results remain historical. |
+
+The user's existing demo was occupying port 4318 during browser validation. It was left running; the test config in the clean validation checkout used port 4319. An initial focused attempt stopped before any test because 4318 was occupied; this was a port conflict, not a test failure.
+
+Reviewed local captures: `/tmp/quay-next-v2-integration/alignment-screenshots/dark-workbench-1536.png`, `light-workbench-1536.png`, `dark-workbench-390.png`, `light-workbench-390.png`, `light-preview-390.png`, `dark-preview-390.png`, and `measurements.json`. The reference image supplied by the owner and these local screenshots were review inputs and were not committed. Test logs are `/tmp/quay-next-v2-integration/visual-align-final-check.log`, `visual-align-browser-focused-final.log`, and `visual-align-browser-full.log`.
+
+The implementation follows the reference's hierarchy and first-fold geometry without claiming pixel identity or unimplemented Quay capabilities. Firefox, full assistive-technology review, private/auth acceptance and production integration remain open in [STATE.md](STATE.md).

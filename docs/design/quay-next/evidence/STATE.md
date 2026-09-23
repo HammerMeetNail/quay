@@ -33,3 +33,7 @@ The approved composition is now specified in [VISUAL-REVISION-2.md](../VISUAL-RE
 | V2-06 final evidence | Recorded | Exact new commands, render measurements, live public data, limitations and local artifact paths are in [VISUAL-REVISION-2.md](VISUAL-REVISION-2.md). |
 
 The QN task history above remains in progress. QN-07–QN-12 are not completed by this presentation revision. The existing dirty lockfile and ZIP remain outside the presentation delta.
+
+## Rendered-reference alignment
+
+After the owner compared the running UI with the planning image, `abb272c49830241ef5b60d2b31f649f7c533eee8` aligned the first desktop viewport around a compact repository list, right overview and task footer. The demo overview is passive; the live overview requires an explicit allowlisted selection. Exact geometry, light/dark and mobile captures, locked-dependency tests, and the public read-only launch are recorded in [VISUAL-ALIGNMENT.md](VISUAL-ALIGNMENT.md). This is a presentation correction within QN-02–QN-05; it does not close the outstanding QN gates above.
