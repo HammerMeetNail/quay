@@ -16,13 +16,12 @@ import {
   Form,
   FormGroup,
   TextInput,
-  Label,
 } from '@patternfly/react-core';
 import {Table, Thead, Tbody, Tr, Th, Td} from '@patternfly/react-table';
+import {SearchIcon} from '@patternfly/react-icons';
 import {useSession} from '../app/Session';
 import {
   abbreviated,
-  dateLabel,
   isDigest,
   parseRepositoryDetails,
   parseTags,
@@ -30,7 +29,8 @@ import {
   evidenceLabel,
   type Tag,
 } from '../lib/domain';
-import {pageNumber, shouldUseInspector} from '../lib/operations';
+import {pageNumber} from '../lib/operations';
+import {descriptionText, platformHydrationDigests} from '../lib/presentation';
 import {ArtifactDetails} from './ArtifactDetails';
 import {
   Empty,
@@ -39,11 +39,21 @@ import {
   PageControls,
   useMedia,
 } from '../components/Primitives';
-const EvidenceCell: React.FC<{
-  ns: string;
-  repo: string;
-  tag: Tag;
-}> = ({ns, repo, tag}) => {
+import {
+  DownloadSize,
+  PlatformList,
+  StateMark,
+  UpdatedAt,
+  VisibilityMark,
+} from '../components/DataPresentation';
+import {useManifestMetadata} from '../components/useManifestMetadata';
+import {useWorkspaceWidth} from '../components/useWorkspaceWidth';
+
+const EvidenceCell: React.FC<{ns: string; repo: string; tag: Tag}> = ({
+  ns,
+  repo,
+  tag,
+}) => {
   const {client} = useSession();
   const query = useQuery({
     queryKey: ['evidence', ns, repo, tag.digest],
@@ -56,13 +66,158 @@ const EvidenceCell: React.FC<{
       ),
   });
   return (
-    <span>{tag.index ? 'Select a platform' : evidenceLabel(query.data)}</span>
+    <span className="qn-evidence-text">
+      {tag.index
+        ? 'Per-platform reports'
+        : query.isError
+          ? 'Report unavailable'
+          : evidenceLabel(query.data)}
+    </span>
   );
 };
-export const RepositoryView: React.FC<{
+const ActivePlatforms: React.FC<{ns: string; repo: string; digest: string}> = ({
+  ns,
+  repo,
+  digest,
+}) => {
+  const metadata = useManifestMetadata(ns, repo, digest, true);
+  return (
+    <>
+      <PlatformList
+        manifest={metadata.data}
+        index
+        loading={metadata.isFetching}
+        failed={metadata.isError}
+      />
+      {metadata.isError && !metadata.isFetching && (
+        <Button variant="link" isInline onClick={() => void metadata.refetch()}>
+          Retry platforms
+        </Button>
+      )}
+    </>
+  );
+};
+// Resolve only visible index rows (plus a short scroll-ahead margin). This does
+// not download child manifests or scan reports. The queue and Query cache are shared.
+const VisiblePlatforms: React.FC<{
   ns: string;
   repo: string;
-}> = ({ns, repo}) => {
+  tag: Tag;
+  enabled: boolean;
+}> = ({ns, repo, tag, enabled}) => {
+  const anchor = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const node = anchor.current;
+    if (!node || !enabled || !tag.index) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      // Conservative fallback: no eager page fan-out on an unsupported browser.
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        setVisible(entries.some((entry) => entry.isIntersecting));
+      },
+      {rootMargin: '160px 0px'},
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [enabled, tag.index]);
+  // Unmount the observer offscreen: disabling it leaves queued requests alive.
+  // Query owns cancellation, so other visible rows and the inspector keep a
+  // shared digest request alive until its final observer leaves.
+  return (
+    <div ref={anchor} className="qn-platform-cell">
+      {enabled && visible && tag.index && isDigest(tag.digest) ? (
+        <ActivePlatforms ns={ns} repo={repo} digest={tag.digest} />
+      ) : (
+        <>
+          <PlatformList index={tag.index} />
+          {enabled &&
+            tag.index &&
+            isDigest(tag.digest) &&
+            typeof IntersectionObserver === 'undefined' && (
+              <Button variant="link" isInline onClick={() => setVisible(true)}>
+                Load platforms
+              </Button>
+            )}
+        </>
+      )}
+    </div>
+  );
+};
+const TagRecord: React.FC<{
+  ns: string;
+  repo: string;
+  tag: Tag;
+  name: React.ReactNode;
+  narrow: boolean;
+  condensed: boolean;
+  inspected: boolean;
+  hydrate: boolean;
+}> = ({ns, repo, tag, name, narrow, condensed, inspected, hydrate}) => {
+  const identity = (
+    <>
+      <div className="qn-entity-line">
+        {name}
+        {tag.immutable === true && <span className="qn-state">Immutable</span>}
+      </div>
+      <code className="qn-secondary qn-digest-preview">
+        {abbreviated(tag.digest)}
+      </code>
+    </>
+  );
+  const platforms = (
+    <VisiblePlatforms ns={ns} repo={repo} tag={tag} enabled={hydrate} />
+  );
+  if (narrow)
+    return (
+      <li className={inspected ? 'qn-inspected' : ''}>
+        {identity}
+        <div className="qn-mobile-platforms">{platforms}</div>
+        <dl className="qn-mobile-facts">
+          <div>
+            <dt>Image size</dt>
+            <dd>
+              <DownloadSize bytes={tag.size} index={tag.index} />
+            </dd>
+          </div>
+          <div>
+            <dt>Evidence</dt>
+            <dd>
+              <EvidenceCell ns={ns} repo={repo} tag={tag} />
+            </dd>
+          </div>
+        </dl>
+        <p className="qn-secondary">
+          Tag updated <UpdatedAt value={tag.modified} />
+        </p>
+      </li>
+    );
+  return (
+    <Tr className={inspected ? 'qn-inspected' : ''}>
+      <Td dataLabel="Tag / digest">{identity}</Td>
+      <Td dataLabel="Platforms">{platforms}</Td>
+      {!condensed && (
+        <Td dataLabel="Image size">
+          <DownloadSize bytes={tag.size} index={tag.index} />
+        </Td>
+      )}
+      {!condensed && (
+        <Td dataLabel="Tag updated">
+          <UpdatedAt value={tag.modified} />
+        </Td>
+      )}
+      <Td dataLabel="Evidence">
+        <EvidenceCell ns={ns} repo={repo} tag={tag} />
+      </Td>
+    </Tr>
+  );
+};
+export const RepositoryView: React.FC<{ns: string; repo: string}> = ({
+  ns,
+  repo,
+}) => {
   const {client} = useSession();
   const location = useLocation();
   const navigate = useNavigate();
@@ -71,27 +226,13 @@ export const RepositoryView: React.FC<{
   const exact = params.get('tagSearch') ?? '';
   const [draft, setDraft] = useState(exact);
   const hash = params.get('artifact');
-  const [width, setWidth] = useState(0);
-  const wrapper = useRef<HTMLDivElement>(null);
-  const returnTo = useRef<{
-    id: string;
-    scroll: number;
-  } | null>(null);
+  const {ref: wrapper, inline} = useWorkspaceWidth(
+    params.get('detail') === 'page',
+  );
+  const returnTo = useRef<{id: string; scroll: number} | null>(null);
   const tableHeading = useRef<HTMLHeadingElement>(null);
   const narrow = useMedia('(max-width: 48rem)');
   useEffect(() => setDraft(exact), [exact]);
-  useEffect(() => {
-    if (!wrapper.current) return;
-    const node = wrapper.current;
-    const observer = new ResizeObserver(() => setWidth(node.clientWidth));
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-  const inline = shouldUseInspector(
-    width,
-    parseFloat(getComputedStyle(document.documentElement).fontSize),
-    params.get('detail') === 'page',
-  );
   const details = useQuery({
     queryKey: ['repository', ns, repo],
     queryFn: ({signal}) =>
@@ -114,6 +255,7 @@ export const RepositoryView: React.FC<{
     (t) =>
       t.digest === hash && (!params.get('tag') || t.name === params.get('tag')),
   );
+  const association = tags.data?.tags.find((t) => t.name === params.get('tag'));
   function inspect(
     event: React.MouseEvent<HTMLAnchorElement>,
     tag: Tag,
@@ -135,31 +277,26 @@ export const RepositoryView: React.FC<{
     next.set('tag', tag.name);
     next.delete('target');
     next.delete('detail');
-    setParams(next, {replace: !!hash});
+    setParams(next, {replace: !!hash, state: location.state});
   }
   function changeCollection(change: (next: URLSearchParams) => void): void {
     const next = new URLSearchParams(params);
     change(next);
     ['artifact', 'tag', 'target', 'detail'].forEach((key) => next.delete(key));
     returnTo.current = null;
-    setParams(next, {replace: !!hash});
+    setParams(next, {replace: !!hash, state: location.state});
     requestAnimationFrame(() => tableHeading.current?.focus());
   }
   function close(): void {
     if (returnTo.current) navigate(-1);
     else {
-      // Forward and direct links have no saved opener. Restore focus to
-      // the collection after the detail controls have been removed.
+      // Preserve the landed direct-link/Forward focus recovery, without external-history navigation.
       returnTo.current = {id: 'tags-heading', scroll: window.scrollY};
-      setParams(
-        (p) => {
-          ['artifact', 'tag', 'target', 'detail'].forEach((key) =>
-            p.delete(key),
-          );
-          return p;
-        },
-        {replace: true},
+      const next = new URLSearchParams(params);
+      ['artifact', 'tag', 'target', 'detail'].forEach((key) =>
+        next.delete(key),
       );
+      setParams(next, {replace: true, state: location.state});
     }
   }
   useEffect(() => {
@@ -182,7 +319,7 @@ export const RepositoryView: React.FC<{
         id={`tag-link-${index}`}
         to={`${location.pathname}?${q}`}
         className="qn-entity"
-        onClick={(e) => inspect(e, tag, index)}
+        onClick={(event) => inspect(event, tag, index)}
         aria-current={
           hash === tag.digest && selected?.name === tag.name
             ? 'true'
@@ -195,160 +332,156 @@ export const RepositoryView: React.FC<{
       <span>{tag.name} · unsupported digest</span>
     );
   };
+  const records = tags.data?.tags ?? [];
+  const hydrationDigests = platformHydrationDigests(records);
+  const hasIndexes = hydrationDigests.size > 0;
+  const row = (tag: Tag, index: number): React.ReactNode => (
+    <TagRecord
+      key={`${tag.name}-${tag.digest}`}
+      ns={ns}
+      repo={repo}
+      tag={tag}
+      name={link(tag, index)}
+      narrow={narrow}
+      condensed={!!hash}
+      inspected={hash === tag.digest && selected?.name === tag.name}
+      hydrate={(!hash || isDigest(hash)) && hydrationDigests.has(tag.digest)}
+    />
+  );
   const content = (
-    <section aria-labelledby="tags-heading">
+    <section aria-labelledby="tags-heading" className="qn-repository-workspace">
       <div className="qn-heading">
         <div>
-          <Link to={`/?namespace=${encodeURIComponent(ns)}`}>
+          <Link
+            to={`/?namespace=${encodeURIComponent(ns)}`}
+            className="qn-breadcrumb"
+          >
             Repositories / {ns}
           </Link>
           <h1 id="tags-heading" ref={tableHeading} tabIndex={-1}>
             {repo}
           </h1>
-          <p className="qn-description">{details.data?.description}</p>
+          <p className="qn-description qn-clamp-two">
+            {descriptionText(details.data?.description ?? '')}
+          </p>
         </div>
-        <div className="qn-actions">
-          <Label>{details.data?.visibility ?? 'Visibility loading'}</Label>
-          <span>{details.data?.access}</span>
+        <div className="qn-inline-metadata">
+          <VisibilityMark value={details.data?.visibility ?? 'Not reported'} />
+          <span className="qn-secondary">{details.data?.access}</span>
         </div>
       </div>
       {details.isError && (
         <Failure error={details.error} retry={() => void details.refetch()} />
       )}
       {details.data && details.data.state !== 'NORMAL' && (
-        <Alert
-          isInline
-          variant="info"
-          title={`Repository state: ${details.data.state}`}
-        >
-          This preview does not issue repository mutations.
-        </Alert>
+        <div className="qn-state-banner">
+          <StateMark state={details.data.state} />
+          <span className="qn-secondary">
+            Repository writes are blocked in this preview.
+          </span>
+        </div>
       )}
       <div className="qn-tabs">
         <strong>Tags &amp; artifacts</strong>
         <span className="qn-secondary">
-          Select a tag to inspect its exact reference.
+          Inspect a tag to copy an exact reference.
         </span>
       </div>
-      <Form
-        className="qn-toolbar"
-        onSubmit={(e) => {
-          e.preventDefault();
-          changeCollection((p) => {
-            draft ? p.set('tagSearch', draft) : p.delete('tagSearch');
-            p.delete('page');
-          });
-        }}
-      >
-        <FormGroup label="Find an exact tag" fieldId="tag-search">
-          <TextInput
-            id="tag-search"
-            value={draft}
-            onChange={(_, value) => setDraft(value)}
-            type="search"
-            placeholder="For example, v2.8.1"
-          />
-        </FormGroup>
-        <Button type="submit" variant="secondary">
-          Find tag
-        </Button>
-        {exact && (
-          <Button
-            variant="link"
-            onClick={() =>
-              changeCollection((p) => {
-                p.delete('tagSearch');
-                p.delete('page');
-              })
-            }
-          >
-            Clear search
+      <div className="qn-list-surface">
+        <Form
+          className="qn-toolbar qn-tag-toolbar"
+          onSubmit={(event) => {
+            event.preventDefault();
+            changeCollection((p) => {
+              draft ? p.set('tagSearch', draft) : p.delete('tagSearch');
+              p.delete('page');
+            });
+          }}
+        >
+          <FormGroup fieldId="tag-search" className="qn-search-group">
+            <label htmlFor="tag-search" className="qn-sr-only">
+              Find an exact tag
+            </label>
+            <div className="qn-search-field">
+              <SearchIcon aria-hidden="true" />
+              <TextInput
+                id="tag-search"
+                value={draft}
+                onChange={(_, value) => setDraft(value.slice(0, 128))}
+                type="search"
+                placeholder="Find an exact tag…"
+              />
+            </div>
+          </FormGroup>
+          <Button type="submit" variant="secondary">
+            Find tag
           </Button>
-        )}
-      </Form>
-      {tags.isLoading ? (
-        <LoadingRows />
-      ) : tags.isError ? (
-        <Failure error={tags.error} retry={() => void tags.refetch()} />
-      ) : !tags.data?.tags.length ? (
-        <Empty title={exact ? 'No matching tag' : 'No active tags'}>
-          <p>
-            {exact
-              ? 'Exact-tag search is case-sensitive. Clear the search to browse active tags.'
-              : 'Push an image using your normal container tooling, then refresh.'}
+          {exact && (
+            <Button
+              variant="link"
+              onClick={() =>
+                changeCollection((p) => {
+                  p.delete('tagSearch');
+                  p.delete('page');
+                })
+              }
+            >
+              Clear search
+            </Button>
+          )}
+        </Form>
+        {hasIndexes && (
+          <p className="qn-metadata-toolbar qn-secondary">
+            Actual platforms load for visible image indexes. Security reports
+            stay on demand.
           </p>
-        </Empty>
-      ) : narrow ? (
-        <ul className="qn-records" aria-label="Tags and artifacts">
-          {tags.data.tags.map((tag, i) => (
-            <li key={`${tag.name}-${tag.digest}`}>
-              {link(tag, i)}
-              <code>{abbreviated(tag.digest)}</code>
-              <dl>
-                <dt>Artifact</dt>
-                <dd>{tag.index ? 'Multi-platform index' : 'Manifest'}</dd>
-                <dt>Tag updated</dt>
-                <dd>{dateLabel(tag.modified)}</dd>
-                <dt>Evidence</dt>
-                <dd>
-                  <EvidenceCell ns={ns} repo={repo} tag={tag} />
-                </dd>
-              </dl>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <Table role="table" aria-label="Tags and artifacts" variant="compact">
-          <Thead>
-            <Tr>
-              <Th>Tag / digest</Th>
-              <Th>Artifact</Th>
-              {!hash && <Th>Tag updated</Th>}
-              <Th>Evidence</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {tags.data.tags.map((tag, i) => (
-              <Tr
-                key={`${tag.name}-${tag.digest}`}
-                className={hash === tag.digest ? 'qn-inspected' : ''}
-              >
-                <Td dataLabel="Tag / digest">
-                  {link(tag, i)}
-                  <code className="qn-secondary qn-full-value">
-                    {abbreviated(tag.digest)}
-                  </code>
-                </Td>
-                <Td dataLabel="Artifact">
-                  {tag.index ? 'Multi-platform index' : 'Manifest'}
-                </Td>
-                {!hash && (
-                  <Td dataLabel="Tag updated">{dateLabel(tag.modified)}</Td>
-                )}
-                <Td dataLabel="Evidence">
-                  <EvidenceCell ns={ns} repo={repo} tag={tag} />
-                </Td>
+        )}
+        {tags.isLoading ? (
+          <LoadingRows />
+        ) : tags.isError ? (
+          <Failure error={tags.error} retry={() => void tags.refetch()} />
+        ) : !records.length ? (
+          <Empty title={exact ? 'No matching tag' : 'No active tags'}>
+            <p>
+              {exact
+                ? 'Exact-tag search is case-sensitive. Clear the search to browse active tags.'
+                : 'Push an image with your normal container tooling, then refresh.'}
+            </p>
+          </Empty>
+        ) : narrow ? (
+          <ul className="qn-records" aria-label="Tags and artifacts">
+            {records.map(row)}
+          </ul>
+        ) : (
+          <Table
+            role="table"
+            aria-label="Tags and artifacts"
+            variant="compact"
+            className={`qn-table qn-tags-table ${hash ? 'qn-table--condensed' : ''}`}
+          >
+            <Thead>
+              <Tr>
+                <Th>Tag / digest</Th>
+                <Th>Platforms</Th>
+                {!hash && <Th>Image size</Th>}
+                {!hash && <Th>Tag updated</Th>}
+                <Th>Evidence</Th>
               </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      )}
-      <PageControls
-        label={`Page ${page} · ${tags.data?.tags.length ?? 0} tags returned`}
-        busy={tags.isFetching}
-        canPrevious={page > 1}
-        canNext={!!tags.data?.more}
-        previous={() =>
-          changeCollection((p) => {
-            p.set('page', String(page - 1));
-          })
-        }
-        next={() =>
-          changeCollection((p) => {
-            p.set('page', String(page + 1));
-          })
-        }
-      />
+            </Thead>
+            <Tbody>{records.map(row)}</Tbody>
+          </Table>
+        )}
+        <PageControls
+          label={`Page ${page} · ${records.length} tags returned`}
+          busy={tags.isFetching}
+          canPrevious={page > 1}
+          canNext={!!tags.data?.more}
+          previous={() =>
+            changeCollection((p) => p.set('page', String(page - 1)))
+          }
+          next={() => changeCollection((p) => p.set('page', String(page + 1)))}
+        />
+      </div>
     </section>
   );
   const validHash = hash && isDigest(hash) ? hash : null;
@@ -365,19 +498,29 @@ export const RepositoryView: React.FC<{
   ) : null;
   return (
     <div ref={wrapper} className="qn-workspace-measure">
-      {hash && !validHash ? (
+      {hash && association && association.digest !== hash && (
+        <Alert
+          variant="warning"
+          isInline
+          title="This tag now points to a different digest"
+        >
+          You are still inspecting the exact digest in the URL, not the tag’s
+          current target.
+        </Alert>
+      )}
+      {hash && !validHash && (
         <Alert
           variant="warning"
           isInline
           title="Unsupported or invalid artifact digest"
         >
           <p>
-            SHA-256 and SHA-512 are supported. The value will not be sent to the
-            registry.
+            SHA-256 and SHA-512 are supported. This value will not be sent to
+            the registry.
           </p>
           <Button onClick={close}>Back to tags</Button>
         </Alert>
-      ) : null}
+      )}
       {detail && !inline ? (
         detail
       ) : (

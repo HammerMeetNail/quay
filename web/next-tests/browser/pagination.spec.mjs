@@ -56,7 +56,7 @@ test('repository cursor ancestry follows browser history and preserves URL param
     await expectUrl(page, pageUrl(a));
     await expect(page.getByText(loopMessage)).toHaveCount(0);
     // Replacing the current entry to change a filter must retain its ancestry.
-    await page.getByLabel('Filter this response page').fill('service-');
+    await page.getByLabel('Filter repositories on this page').fill('service-');
     await page.getByRole('button', { name: 'Previous', exact: true }).click();
     await expectUrl(page, `${base}?q=service-&keep=exact%2Bvalue`);
     await page.getByRole('button', { name: 'Next', exact: true }).click();

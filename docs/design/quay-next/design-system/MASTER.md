@@ -6,6 +6,8 @@ This is the global visual and interaction contract. Read it once when starting a
 
 This refinement applies the master-and-page-override workflow and relevant web guidance from `nextlevelbuilder/ui-ux-pro-max-skill`, pinned at `dcc40ff5133ef78276117db0cc34e7b83cc8aeba`. The chosen direction is our adaptation of its Minimalism & Swiss Style family, not an automatically generated recommendation. See [review, sources, and task amendments](../UX-REFINEMENT.md).
 
+**Latest presentation authority:** [Visual revision 2](../VISUAL-REVISION-2.md) and [mobile revision 2](../MOBILE-V2.md) refine this master after the owner reviewed the rendered first slice and approved a new composition. Follow their scoped palette, repository preview, identity-embedded visibility, bounded visible-row platform hydration, and responsive navigation rules for this update. Historical page examples are retained for context; no visual override can weaken security, auth parity, identity isolation, or the live-read allowlist.
+
 ## 1. Decisions an implementing agent must not reinvent
 
 Build a precise tool for finding, inspecting, and using artifacts. Use **React, PatternFly 6, and the existing compatible dependency graph**. All primary controls, forms, menus, tables, drawers, and dialogs use PatternFly components. Semantic HTML remains appropriate for headings, landmarks, text, and layout wrappers. Do not introduce a second component library.

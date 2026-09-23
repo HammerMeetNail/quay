@@ -11,8 +11,8 @@ import {
 } from '@patternfly/react-core';
 import {Table, Thead, Tbody, Tr, Th, Td} from '@patternfly/react-table';
 import {useSession} from '../app/Session';
+import {DownloadSize} from '../components/DataPresentation';
 import {
-  bytesLabel,
   ContractError,
   dateLabel,
   evidenceLabel,
@@ -448,11 +448,15 @@ export const ArtifactDetails: React.FC<{
               >
                 {copyResult}
               </p>
-              <p className="qn-secondary">
-                {selectedManifest?.index
-                  ? 'Size: per platform; not a combined download size.'
-                  : `Compressed layers: ${bytesLabel(selectedManifest?.compressedBytes ?? (target === hash ? (tag?.size ?? null) : null))}`}
-              </p>
+              <div className="qn-artifact-size">
+                <DownloadSize
+                  index={selectedManifest?.index === true}
+                  bytes={
+                    selectedManifest?.compressedBytes ??
+                    (target === hash ? (tag?.size ?? null) : null)
+                  }
+                />
+              </div>
             </section>
             {manifest.index && (
               <section className="qn-section">
